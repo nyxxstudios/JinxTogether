@@ -55,15 +55,8 @@ public class RandomLogic implements IGameHandler {
 	 */
 	@Override
 	public void onRequestAction() {
-		System.out.println("*** Es wurde ein Zug angefordert");
-                List<Move> possibleMoves = gameState.getPossibleMoves();
-                System.out.println("*** sende zug: ");
-                Move selection = possibleMoves.get(rand.nextInt(possibleMoves
-                                .size()));
-                System.out.println("*** setze Strommast auf x="
-                                + selection.getX() + ", y="
-                                + selection.getY());
-                sendAction(selection);
+		Move selection = Jinx.findMove(gameState);
+		sendAction(selection);
 	}
 
 	/**
