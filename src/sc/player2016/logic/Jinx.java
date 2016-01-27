@@ -29,7 +29,7 @@ public class Jinx {
 	private static Field lastMoveByJinx = null;
 	
 	enum FieldColor{
-		black, green, jinx, opponent
+		BLACK, GREEN, JINX, OPPONENT
 	}
 	
 	/*Generates the best move, Jinx1 is able to find.
@@ -69,7 +69,7 @@ public class Jinx {
 				//initialize board
 				Move firstMove = gameState.getLastMove();
 				board = new Board(gameState);
-				board.getField(firstMove.getX(), firstMove.getY()).setFieldColor(FieldColor.opponent);
+				board.getField(firstMove.getX(), firstMove.getY()).setFieldColor(FieldColor.OPPONENT);
 			}
 			
 			//update board (add move (and sometimes connection) by opponent)
@@ -291,7 +291,7 @@ public class Jinx {
 		// and 10 <= y <= 14 .
 		for(int row = 10; row<=14 && result == null; row++){
 			for(int col=10; col<=14 && result == null; col++){
-				if(board.getField(row, col).getFieldColor() == FieldColor.black)
+				if(board.getField(row, col).getFieldColor() == FieldColor.BLACK)
 					result = new Move(row, col);
 			}
 		}
