@@ -299,6 +299,80 @@ public class Jinx {
 		return result;
 	}
 	
+        private static Move getFirstMoveOfGameGK(GameState gameState) {
+                ArrayList<Move> firstMoves1 = new ArrayList();
+                ArrayList<Move> firstMoves2 = new ArrayList();
+                ArrayList<Move> firstMoves3 = new ArrayList();
+
+                int [] horiz = {8, 15};
+                int [] vertic = {5, 18};
+
+                switch (gameState.getStartPlayerColor()) {
+                    case BLUE : 
+                        //do nothing default;
+                        break;
+                    case RED :
+                        horiz[0] = 5; 
+                        horiz[1] = 18;
+                        vertic[0] = 8;
+                        vertic[1] = 15;
+                        break;
+                }  
+
+                firstMoves1.addAll(gameState.getPossibleMoves());
+
+                System.out.println("Debug1");
+
+        //Level 1
+                // tests if Move is in Field of Interest(the Middel)
+                for (int i = (firstMoves1.size() - 1); i >= 0; i--) {
+                    if (firstMoves1.get(i).getX() >= horiz[0] && horiz[1] >= firstMoves1.get(i).getX()){
+                        if (firstMoves1.get(i).getY() >= vertic[0] && vertic[1] >= firstMoves1.get(i).getY()) {
+                            firstMoves2.add(firstMoves1.get(i));
+                        }
+                    }
+                System.out.println(i);
+                }
+        // Level 2    
+                System.out.println("Debug2");
+
+                int [][] neighborhood = {
+                    {0, -1}, {1, -1}, {1,0}, {1,1}, {0,1}, {-1,1}, {-1, 0}, {-1,-1}
+                };
+
+                for (int i = (firstMoves2.size() -1) ; i >= 0;  i--) { 
+                    boolean swampNear = false;
+                    for (int j = (neighborhood.length -1); j >= 0; j--) {
+
+                        int mx = firstMoves2.get(i).getX();
+                        int my = firstMoves2.get(i).getY(); 
+
+                        mx = mx + neighborhood[j][0];
+                        my = my + neighborhood[j][1];
+
+                        //Field occuField = new Field(mx, my);
+
+                        //occuField.assignType(gameState);
+
+                        if (board.getField(mx, my).getFieldColor() == Jinx.FieldColor.green){
+                            swampNear = true;
+                        }
+
+                    } 
+                    if (!swampNear){
+                        firstMoves3.add(firstMoves2.get(i));
+                    }
+
+                } 
+        //Level 3     
+                System.out.println("Debug3");
+
+
+                Move result = firstMoves3.get(rand.nextInt(firstMoves3.size()));;
+
+                return result;
+        }
+        
 	private static void printPossibleMoves(List<Move> possibleMoves){
 		System.out.println("Possible Moves:");
 		int i=1;
