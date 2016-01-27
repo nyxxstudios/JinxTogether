@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class Field{
 	//green is default in order to increase speed in initBoard()
-	private Jinx.FieldColor fieldColor = Jinx.FieldColor.green;
+	private Jinx.FieldColor fieldColor = Jinx.FieldColor.GREEN;
 	
 	private int x;
 	private int y;

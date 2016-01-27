@@ -26,10 +26,10 @@ public class Board {
 		boolean isPlayingVertical;
 		
 		if(isJinxMove){
-			fieldColor = FieldColor.jinx;
+			fieldColor = FieldColor.JINX;
 			isPlayingVertical = Jinx.jinxIsPlayingVertical;
 		}else{
-			fieldColor = FieldColor.opponent; 
+			fieldColor = FieldColor.OPPONENT; 
 			isPlayingVertical = !Jinx.jinxIsPlayingVertical;
 		}
 		
@@ -158,7 +158,7 @@ public class Board {
 		}
 		
 		//NOT ALWAYS BLACK (BORDER l. initBoard())!
-		getField(x, y).setFieldColor(FieldColor.black);
+		getField(x, y).setFieldColor(FieldColor.BLACK);
 	}
 	
 	public float evaluateBoardPosition(){
@@ -235,12 +235,13 @@ public class Board {
                         {-3,  3},                                       {3,  3},
                                                 {0,  4}
 		};
+                
 		//get fields around lastMove
-		for(int[] f : goodFieldsFromSecondLastMove){
+		for(int[] f : goodFields){
 			pX = x+f[0];
 			pY = y+f[1];
 			if(pX >= 0 && pX < 24 && pY >= 0 && pY < 24){
-				if(getField(pX,pY).getFieldColor() == FieldColor.black){
+				if(getField(pX,pY).getFieldColor() == FieldColor.BLACK){
 					result.add(getField(pX,pY));
 				}
 			}else{
@@ -258,7 +259,7 @@ public class Board {
 				pX = x+f[0];
 				pY = y+f[1];
 				if(pX >= 0 && pX < 24 && pY >= 0 && pY < 24){
-					if(getField(pX,pY).getFieldColor() == FieldColor.black){
+					if(getField(pX,pY).getFieldColor() == FieldColor.BLACK){
 						if(!result.contains(getField(pX,pY))){
 							result.add(getField(pX,pY));
 						}
@@ -432,6 +433,34 @@ public class Board {
 		}
 	}
 	
+        
+        int minX = 0, minY=0, maxX=24, maxY=24;
+        ArrayList<Field> alreadyVisited = new ArrayList<Field>();
+            
+//        private int pointsWithField(Field f, boolean isPlayingVertical){
+//            calcPoints(f);
+//            if(isPlayingVertical){
+//                return maxY - minY;
+//            }else{
+//                return maxX - minX;
+//            }
+//        }
+//        
+//        private void calcPoints(Field f){
+//            ArrayList<Field> connections = f.getConnections();
+//            for(Field c : connections){
+//                if(!alreadyVisited.contains(c)){
+//                    if(c.getX() < minX)minX = c.getX();
+//                    if(c.getX() > maxX)maxX = c.getX();
+//                    if(c.getY() < minY)minY = c.getY();
+//                    if(c.getY() > maxY)maxY = c.getY();
+//
+//                    alreadyVisited.add(c);
+//                    calcPoints(c);
+//                }
+//            }
+//        }
+//        
 	private void initFields(GameState gameState){
 		List<Move> possibleMoves = gameState.getPossibleMoves();
 		
@@ -439,13 +468,13 @@ public class Board {
 		for(int row=0; row<24; row++){
 			for(int col=0; col<24; col++){
 				fields[row][col] = new Field(row, col);
-				fields[row][col].setFieldColor(FieldColor.green);
+				fields[row][col].setFieldColor(FieldColor.GREEN);
 			}
 		}
 		
 		//every possible field becomes black
 		for(Move move : possibleMoves){
-			fields[move.getX()][move.getY()].setFieldColor(FieldColor.black);
+			fields[move.getX()][move.getY()].setFieldColor(FieldColor.BLACK);
 		}
 		
 		
