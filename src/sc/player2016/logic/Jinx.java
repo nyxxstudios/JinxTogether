@@ -15,7 +15,7 @@ public class Jinx {
 	//Hopefully not necessary in final version...
 	private static final Random rand = new SecureRandom();
 	
-	private static final int DEPTH = 4;
+	private static final int TIMELIMIT = 1800;
 	
 	private static boolean isFirstMove = true;
 	
@@ -83,7 +83,7 @@ public class Jinx {
 //					+ selection.getX() + ", y="
 //					+ selection.getY());
 //			Field nextMove = calcBestMove(board.getField(gameState.getLastMove().getX(), gameState.getLastMove().getY()), lastMoveByJinx, DEPTH);
-                        Field nextMove = calcBestMoveIterative(board.getField(gameState.getLastMove().getX(), gameState.getLastMove().getY()),lastMoveByJinx, 1500);
+                        Field nextMove = calcBestMoveIterative(board.getField(gameState.getLastMove().getX(), gameState.getLastMove().getY()),lastMoveByJinx, TIMELIMIT);
 			selection = new Move(nextMove.getX(), nextMove.getY());
 		}
 
@@ -376,7 +376,7 @@ public class Jinx {
 
         //Level 1
                 // tests if Move is in Field of Interest(the Middel)
-                for (int i = (firstMoves1.size() - 1); i >= 0; i--) {
+                for (int i = 0; i < firstMoves1.size(); i++) {
                     if (firstMoves1.get(i).getX() >= horiz[0] && horiz[1] >= firstMoves1.get(i).getX()){
                         if (firstMoves1.get(i).getY() >= vertic[0] && vertic[1] >= firstMoves1.get(i).getY()) {
                             firstMoves2.add(firstMoves1.get(i));
@@ -385,13 +385,14 @@ public class Jinx {
                 System.out.println(i);
                 }
         // Level 2    
+                //System.out.println(firstMoves1);
                 System.out.println("Debug2");
 
                 int [][] neighborhood = {
                     {0, -1}, {1, -1}, {1,0}, {1,1}, {0,1}, {-1,1}, {-1, 0}, {-1,-1}
                 };
 
-                for (int i = (firstMoves2.size() -1) ; i >= 0;  i--) { 
+                for (int i = 0; i < firstMoves2.size(); i++) { 
                     boolean swampNear = false;
                     for (int j = (neighborhood.length -1); j >= 0; j--) {
 
@@ -421,6 +422,8 @@ public class Jinx {
 
                 Move result = firstMoves3.get(rand.nextInt(firstMoves3.size()));;
 
+                //Move result = firstMoves3.get(0);;
+               
                 return result;
         }
         
