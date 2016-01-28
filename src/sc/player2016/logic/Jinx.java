@@ -61,7 +61,7 @@ public class Jinx {
 			
 			//initialize board
 			board = new Board(gameState);
-			selection = getFirstMoveOfGame(gameState);
+			selection = getFirstMoveOfGameJep();
 		}else{
 			if(gameState.getTurn() == 1){
 				jinxIsPlayingVertical = false;
@@ -284,7 +284,7 @@ public class Jinx {
 	
 	//Gets first move of the game (is just needed, when Jinx begins) depending on 
 	//the positions of the green fields (maxNumberOfGreenFields = 3x3 + 2x2 + 2x2 + 1 = 18)
-	private static Move getFirstMoveOfGame(GameState gameState){
+	private static Move getFirstMoveOfGame(){
 		Move result = null;
 		
 		//in jinx 0.01 the first move will be on a field (x,y) with 10 <= x <= 14
@@ -299,6 +299,57 @@ public class Jinx {
 		return result;
 	}
 	
+        private static Move getFirstMoveOfGameJep(){
+		boolean isSwampInColumn;
+                int startColOfLongestDistance = 1;
+                int endColOfLongestDistance = 1;
+                int startColOfCurrentDistance = 1;
+                
+                //Find column with maximum possible horizontal distance to next
+                //swamp field (x coordinate of result)
+                for(int col=1; col < 23; col++){
+                    isSwampInColumn = false;
+                    for(int row=1;row<23; row++){
+                        if(board.getField(col, row).getFieldColor() == FieldColor.GREEN){
+                            isSwampInColumn = true;
+                            break;
+                        }
+                    }
+                    if(isSwampInColumn){
+                        if(endColOfLongestDistance-startColOfLongestDistance < (col-1) - startColOfCurrentDistance){
+                            startColOfLongestDistance = startColOfCurrentDistance;
+                            endColOfLongestDistance = col-1;
+                        }
+                        startColOfCurrentDistance = col+1;
+                    }
+                }
+                //if the biggest corridor is until col 22, than this if is necessary
+                if(endColOfLongestDistance-startColOfLongestDistance < 22 - startColOfCurrentDistance){
+                            startColOfLongestDistance = startColOfCurrentDistance;
+                            endColOfLongestDistance = 22;
+                }
+                
+                int row = 11;//or 12; mabye also depending on swamp 
+                             //locations somehow
+                int col;
+                if((endColOfLongestDistance - startColOfLongestDistance) % 2 == 0){
+                    col = startColOfLongestDistance + (endColOfLongestDistance - startColOfLongestDistance)/2;
+                }else{
+                    //get the (of two, either midOfCorridor-0.5 or midOfCorridor+0.5) 
+                    //mid field, that is nearer to the center (11.5)
+                    float midOfCorridor = startColOfLongestDistance + (endColOfLongestDistance -startColOfLongestDistance)/(float)2;
+                    
+                    if(Math.abs((int)midOfCorridor - 11.5) <= Math.abs((int)midOfCorridor+1 - 11.5)){
+                        col = (int) midOfCorridor;
+                    }else{
+                        col = (int) midOfCorridor+1;
+                    }
+                }
+                
+		return new Move(col, row);
+	}
+	
+        
         private static Move getFirstMoveOfGameGK(GameState gameState) {
                 ArrayList<Move> firstMoves1 = new ArrayList();
                 ArrayList<Move> firstMoves2 = new ArrayList();
