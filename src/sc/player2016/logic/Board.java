@@ -184,7 +184,7 @@ public class Board {
 	//important part of the Jinx AI. Returns all 'good' moves
 	//that can be done (returning all possible moves would be too much
 	//to calculate in a senseful depth)
-	public ArrayList<Field> getPossibleMoves(Field lastMove, Field secondLastMove){
+	public ArrayList<Field> preselectMoves(Field lastMove, Field secondLastMove){
 		
 		int x = lastMove.getX();
 		int y = lastMove.getY();
@@ -192,6 +192,17 @@ public class Board {
 		ArrayList<Field> result = new ArrayList<Field>();
                 
 		final int[][] goodFields = {                                    {0, -4},
+									{-1, -3}, {0, -3}, {1, -3}, 
+						  {-2, -2}, {-1, -2}, {0, -2}, {1, -2}, {2, -2},
+				{-3, -1}, {-2, -1}, {-1, -1}, {0, -1}, {1, -1}, {2, -1}, {3, -1},
+                                {-4,0}, {-3,  0}, {-2,  0}, {-1,  0},          {1,  0}, {2,  0}, {3,  0}, {4,0},
+				{-3,  1}, {-2,  1}, {-1,  1}, {0,  1}, {1,  1}, {2,  1}, {3,  1},
+						  {-2,  2}, {-1,  2}, {0,  2}, {1,  2}, {2,  2},
+						  			{-1,  3}, {0,  3}, {1,  3},
+                                                                        {0, 4}
+		};
+                
+                final int[][] goodFields2 = {                                    {0, -4},
 									{-1, -3}, {0, -3}, {1, -3}, 
 						  {-2, -2}, {-1, -2}, {0, -2}, {1, -2}, {2, -2},
 				{-3, -1}, {-2, -1}, {-1, -1}, {0, -1}, {1, -1}, {2, -1}, {3, -1},
@@ -255,7 +266,7 @@ public class Board {
 			x = secondLastMove.getX();
 			y = secondLastMove.getY();
 	
-			for(int[] f : goodFields){
+			for(int[] f : goodFieldsFromSecondLastMove){
 				pX = x+f[0];
 				pY = y+f[1];
 				if(pX >= 0 && pX < 24 && pY >= 0 && pY < 24){

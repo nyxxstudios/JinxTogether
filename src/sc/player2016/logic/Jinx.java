@@ -15,7 +15,7 @@ public class Jinx {
 	//Hopefully not necessary in final version...
 	private static final Random rand = new SecureRandom();
 	
-	private static final int TIMELIMIT = 1800;
+	private static final int TIMELIMIT = 1900;
 	
 	private static boolean isFirstMove = true;
 	
@@ -105,7 +105,7 @@ public class Jinx {
                 
                 Field result = null;
                 numberOfCutoffs = 0;
-		ArrayList<Field> possibleMoves = board.getPossibleMoves(lastMove, secondLastMove);
+		ArrayList<Field> possibleMoves = board.preselectMoves(lastMove, secondLastMove);
 		
                 ArrayList<Field> sortedMoves = new ArrayList<Field>();
                 ArrayList<Float> valuesOfSortedMoves = new ArrayList<>();
@@ -202,7 +202,7 @@ public class Jinx {
 		}else if(depth == depthAtStart-1){
 			System.out.print(".");
 		}
-		ArrayList<Field> possibleMoves = board.getPossibleMoves(lastMove, secondLastMove);
+		ArrayList<Field> possibleMoves = board.preselectMoves(lastMove, secondLastMove);
 		float maxValue = alpha; //minimum that jinx can reach (found in previous nodes)
 		for(Field move : possibleMoves){
 			board.updateBoard(move, true);
@@ -243,7 +243,7 @@ public class Jinx {
 		}else if(depth == depthAtStart-1){
 //			System.out.print(".");
 		}
-		ArrayList<Field> possibleMoves = board.getPossibleMoves(lastMove, secondLastMove);
+		ArrayList<Field> possibleMoves = board.preselectMoves(lastMove, secondLastMove);
 		float minValue = beta; //maximum that beta can reach (found in previous nodes)
                 Field minMove = null;
 		for(Field move : possibleMoves){

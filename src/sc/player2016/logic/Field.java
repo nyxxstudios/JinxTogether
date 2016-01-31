@@ -38,10 +38,9 @@ public class Field{
 		return connections;
 	}
 	
-	//-----------------does 'equals' work???
+	//-----------------probably just works for the SAME object (ame reference) 
 	public boolean isConnectedWith(Field field){
 		for(Field f : connections){
-			//-----------------does 'equals' work???
 			if(f.equals(field))
 				return true;
 		}
