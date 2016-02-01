@@ -15,7 +15,7 @@ public class Jinx {
 	//Hopefully not necessary in final version...
 	private static final Random rand = new SecureRandom();
 	
-	private static final int TIMELIMIT = 1900;
+	private static final int TIMELIMIT = 100;
 	
 	private static boolean isFirstMove = true;
 	
@@ -89,7 +89,10 @@ public class Jinx {
 
 		//update board (add move (and sometimes connection) by jinx)
 		board.updateBoard(board.getField(selection.getX(), selection.getY()), true);
-				
+		System.out.println("startJinx = " + board.startOfJinxGraph + "  endJinx = " + board.endOfJinxGraph);	
+                System.out.println("startOpponent = " + board.startOfOpponentGraph + "  endOpponent = " + board.endOfOpponentGraph);
+                System.out.println("pointsJinx = " + board.pointsByJinx + "  pointsOpponent = " + board.pointsByOpponent);
+                System.out.println(board.getNumberOfSetFields() + " stones set");
 		lastMoveByJinx = board.getField(selection.getX(), selection.getY());
 		return selection;
 	}
