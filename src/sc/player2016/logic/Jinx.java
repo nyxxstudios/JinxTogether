@@ -332,6 +332,7 @@ public class Jinx {
                 ArrayList<Move> firstMoves1 = new ArrayList();
                 ArrayList<Move> firstMoves2 = new ArrayList();
                 ArrayList<Move> firstMoves3 = new ArrayList();
+                ArrayList<Move> firstMoves4 = new ArrayList();
 
                 int [] horiz = {8, 15};
                 int [] vertic = {5, 18};
@@ -341,8 +342,8 @@ public class Jinx {
                         //do nothing default;
                         break;
                     case RED :
-                        horiz[0] = 5; 
-                        horiz[1] = 18;
+                        horiz[0] = 1; 
+                        horiz[1] = 22;
                         vertic[0] = 8;
                         vertic[1] = 15;
                         break;
@@ -360,9 +361,10 @@ public class Jinx {
                             firstMoves2.add(firstMoves1.get(i));
                         }
                     }
-                System.out.println(i);
+                //System.out.println(i);
                 }
         // Level 2    
+            //eliminate Moves with swamps in dirct neighborhood
                 //System.out.println(firstMoves1);
                 System.out.println("Debug2");
 
@@ -394,13 +396,97 @@ public class Jinx {
                     }
 
                 } 
-        //Level 3     
-                System.out.println("Debug3");
+        //Level 3
+            //find cooridors between swamps and get best Row for the MoveY
+                 System.out.println("Debug3");
+                 
+                //gets all Y-Rows where no  swamps are
+                ArrayList<Integer> noSwampY = new ArrayList();
+                boolean swampRow;
+                
+                for (int i = 0; i <= 23; i++){
+                    swampRow = false;
+                    for (int j = 0; j <= 23; j++){
+                        //System.out.println(i + "," + j);
+                        if (swampRow == false){
+                            if (board.getField(i, j).getFieldColor() == Jinx.FieldColor.BLACK && j == 23){
+                                if (!(noSwampY.contains(j))){
+                                    noSwampY.add(i);
+                                }
+                            } else if (board.getField(i, j).getFieldColor() == Jinx.FieldColor.GREEN) {
+                            swampRow = true;
+                            }
+                        }
+                    }
+                }
+                System.out.println("noSwampRows:" + noSwampY);
+                
+                 System.out.println("Debug4");
+                 
+                //find  cooridors
+                ArrayList<Integer[]> cooridors = new ArrayList(); 
+                boolean stillCooridor = false; //flase == sseking for new ; true == have one
+                int start = 0; 
+                
+                for (int i = 1; i <= 23; i++){
+                    //System.out.println(i);
+                    if (noSwampY.contains(i) && stillCooridor == false){
+                        start = i;
+                        stillCooridor = true;
+                    } else if (stillCooridor == true && !noSwampY.contains(i) || i == 23 ){
+                        int helper = i - 1;
+                        Integer [] a = {start, helper};
+                        cooridors.add(a);
+                        stillCooridor = false;
+                    }
+                }
+                
+                System.out.print("SwampFreeCooridors:");
+                for (Integer[] outer : cooridors) {
+                    for(Integer inner : outer) {
+                      System.out.print(inner + ",");
+                    }
+                  }
+                System.out.println("");
+                
+                //find largest Cooridor
+                int indexOfLargestCor = 1000;
+                int size = 0;
+                
+                for (int i = 0; i < cooridors.size(); i++){
+                    System.out.println("i: " + i);
+                    if (size < (cooridors.get(i)[1] - cooridors.get(i)[0])){
+                        size = cooridors.get(i)[1] - cooridors.get(i)[0];
+                        indexOfLargestCor = i;
+                    }
+                }
+                
+                System.out.println("indexOfLargestCor: "  + indexOfLargestCor);
+                
+                //get right rowY
+                int center = (int) Math.floor((cooridors.get(indexOfLargestCor)[1] - cooridors.get(indexOfLargestCor)[0]) / 2);
+                int rowX;
+                rowX = cooridors.get(indexOfLargestCor)[0] + center;
+                
+                System.out.println("rowY: " + rowX);
+                
+                //get all Moves with the right Y of the preselectet
+                for (int i = 0; i < firstMoves3.size(); i++){
+                    if (firstMoves3.get(i).getX() == rowX ){
+                        firstMoves4.add(firstMoves3.get(i));
+                        System.out.println(i);
+                    }
+                }
+                
+        //Level 4     
+                System.out.println("Debug5");
 
 
-                Move result = firstMoves3.get(rand.nextInt(firstMoves3.size()));;
+               // Move result = firstMoves3.get(rand.nextInt(firstMoves3.size()));;
 
-                //Move result = firstMoves3.get(0);;
+                Move result = firstMoves4.get(0);
+                
+                System.out.println("FirstMove: " + result.getX() + "," +  result.getY());
                
                 return result;
         }
