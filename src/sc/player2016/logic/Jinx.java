@@ -15,10 +15,8 @@ public class Jinx {
 	//Hopefully not necessary in final version...
 	private static final Random rand = new SecureRandom();
 	
-	private static final int TIMELIMIT = 100;
-	
-	private static boolean isFirstMove = true;
-	
+	private static final int TIMELIMIT = 1500;
+
 	private static Board board;
 	
 	private static Field nextMoveByJinx;
@@ -36,65 +34,42 @@ public class Jinx {
 	 * 
 	 * */
 	public static Move findMove(GameState gameState){
-//		System.out.println("*** Es wurde ein Zug angefordert");
-//		System.out.println("Round = " + gameState.getRound());
-//		System.out.println("Last move x = " + gameState.getLastMove().getX() + 
-//				"  y = " + gameState.getLastMove().getY());
-//		System.out.println("Turn = " + gameState.getTurn());
-		
-		System.out.println("Round " + gameState.getRound() + "  ----------------------");
-		
-                
-//                //test insert move
-//                ArrayList<Field> l = new ArrayList<Field>();
-//                ArrayList<Float> l2 = new ArrayList<Float>();
-//                insertMoveIn(l, l2, new Field(10,0) , 10);
-//                insertMoveIn(l, l2, new Field(5,0) , 5);
-//                insertMoveIn(l, l2, new Field(8,0) , 8);
-//                insertMoveIn(l, l2, new Field(2,0) , 2);
-//                insertMoveIn(l, l2, new Field(70,0) , 70);
-//                System.out.println("List: " + l);
-		Move selection;
+            
+            System.out.println("Round " + gameState.getRound() + "  ----------------------");
 
-		if(gameState.getTurn() == 0){
-			jinxIsPlayingVertical = true;
-			
-			//initialize board
-			board = new Board(gameState);
-			selection = getFirstMoveOfGameJep();
-		}else{
-			if(gameState.getTurn() == 1){
-				jinxIsPlayingVertical = false;
-				
-				//initialize board
-				Move firstMove = gameState.getLastMove();
-				board = new Board(gameState);
-				board.getField(firstMove.getX(), firstMove.getY()).setFieldColor(FieldColor.OPPONENT);
-			}
-			
-			//update board (add move (and sometimes connection) by opponent)
-			board.updateBoard(board.getField(gameState.getLastMove().getX(), gameState.getLastMove().getY()), false);
-//			List<Move> possibleMoves = gameState.getPossibleMoves();
-			
-//			System.out.println("*** sende zug: ");
-//			selection = possibleMoves.get(rand.nextInt(possibleMoves
-//					.size()));
-//			System.out.println("*** setze Strommast auf x="
-//					+ selection.getX() + ", y="
-//					+ selection.getY());
-//			Field nextMove = calcBestMove(board.getField(gameState.getLastMove().getX(), gameState.getLastMove().getY()), lastMoveByJinx, DEPTH);
-                        Field nextMove = calcBestMoveIterative(board.getField(gameState.getLastMove().getX(), gameState.getLastMove().getY()),lastMoveByJinx, TIMELIMIT);
-			selection = new Move(nextMove.getX(), nextMove.getY());
-		}
+            Move selection;
 
-		//update board (add move (and sometimes connection) by jinx)
-		board.updateBoard(board.getField(selection.getX(), selection.getY()), true);
-		System.out.println("startJinx = " + board.startOfJinxGraph + "  endJinx = " + board.endOfJinxGraph);	
-                System.out.println("startOpponent = " + board.startOfOpponentGraph + "  endOpponent = " + board.endOfOpponentGraph);
-                System.out.println("pointsJinx = " + board.pointsByJinx + "  pointsOpponent = " + board.pointsByOpponent);
-                System.out.println(board.getNumberOfSetFields() + " stones set");
-		lastMoveByJinx = board.getField(selection.getX(), selection.getY());
-		return selection;
+            if(gameState.getTurn() == 0){
+                jinxIsPlayingVertical = true;
+
+                //initialize board
+                board = new Board(gameState);
+                selection = getFirstMoveOfGameJep();
+            }else{
+                if(gameState.getTurn() == 1){
+                    jinxIsPlayingVertical = false;
+
+                    //initialize board
+                    Move firstMove = gameState.getLastMove();
+                    board = new Board(gameState);
+                    board.getField(firstMove.getX(), firstMove.getY()).setFieldColor(FieldColor.OPPONENT);
+                }
+
+                //update board (add move (and sometimes connection) by opponent)
+                board.updateBoard(board.getField(gameState.getLastMove().getX(), gameState.getLastMove().getY()), false);
+
+                Field nextMove = calcBestMoveIterative(board.getField(gameState.getLastMove().getX(), gameState.getLastMove().getY()),lastMoveByJinx, TIMELIMIT);
+                selection = new Move(nextMove.getX(), nextMove.getY());
+            }
+
+            //update board (add move (and sometimes connection) by jinx)
+            board.updateBoard(board.getField(selection.getX(), selection.getY()), true);
+            System.out.println("startJinx = " + board.startOfJinxGraph + "  endJinx = " + board.endOfJinxGraph);	
+            System.out.println("startOpponent = " + board.startOfOpponentGraph + "  endOpponent = " + board.endOfOpponentGraph);
+            System.out.println("pointsJinx = " + board.pointsByJinx + "  pointsOpponent = " + board.pointsByOpponent);
+            System.out.println(board.getNumberOfSetFields() + " stones set");
+            lastMoveByJinx = board.getField(selection.getX(), selection.getY());
+            return selection;
 	}
 	
 	private static int numberOfCutoffs;

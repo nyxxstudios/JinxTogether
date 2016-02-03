@@ -24,7 +24,7 @@ public class Board {
     //needed in pointsWithField as temporary storage. If points have changed,
     //then also change the start/end fields of the graph (above) with the help of
     //these variables
-    Field startJinxField, endJinxField, startOpponentField, endOpponentField;
+    private Field startJinxField, endJinxField, startOpponentField, endOpponentField;
 
 
     public Board(GameState gameStateAtBeginning){
@@ -84,14 +84,14 @@ public class Board {
                                                             startOfJinxGraph = startJinxField;
                                                             endOfJinxGraph = endJinxField;
 //								System.out.println("New score for jinx = " + pointsByJinx);
-                                                            System.out.println("startJinx = " + startOfJinxGraph + "  endJinx = " + endOfJinxGraph + " cause of updateMove");
+//                                                            System.out.println("startJinx = " + startOfJinxGraph + "  endJinx = " + endOfJinxGraph + " cause of updateMove");
                                                     }
                                             }else{
                                                     if(pointsByOpponent < pointsWithThisField){
                                                             pointsByOpponent = pointsWithThisField;
                                                             startOfOpponentGraph = startOpponentField;
                                                             endOfOpponentGraph = endOpponentField;
-                                                            System.out.println("startOpponent = " + startOfOpponentGraph + "  endOpponent = " + endOfOpponentGraph + " cause of upadteMove");
+//                                                            System.out.println("startOpponent = " + startOfOpponentGraph + "  endOpponent = " + endOfOpponentGraph + " cause of upadteMove");
 //								System.out.println("New score for opponent = " + pointsByOpponent);
                                                     }
                                             }
@@ -182,13 +182,13 @@ public class Board {
                             startOfJinxGraph = startFieldAfterRemoving;
                             endOfJinxGraph = endFieldAfterRemoving;
 //				System.out.println("pointsByJinx = " + pointsByJinx + " cause of undoMove");
-                            System.out.println("startJinx = " + startOfJinxGraph + "  endJinx = " + endOfJinxGraph + " cause of undoMove");
+//                            System.out.println("startJinx = " + startOfJinxGraph + "  endJinx = " + endOfJinxGraph + " cause of undoMove");
                     }else{
                             pointsByOpponent = pointsAfterRemoving;
                             startOfOpponentGraph = startFieldAfterRemoving;
                             endOfOpponentGraph = endFieldAfterRemoving;
 //				System.out.println("pointsByOpponent = " + pointsByOpponent + " cause of undoMove");
-                            System.out.println("startOpponent = " + startOfOpponentGraph + "  endOpponent = " + endOfOpponentGraph + " cause of undoMove");
+//                            System.out.println("startOpponent = " + startOfOpponentGraph + "  endOpponent = " + endOfOpponentGraph + " cause of undoMove");
                     }
             }
 
@@ -202,12 +202,37 @@ public class Board {
 
 
             //First (since 0.01) evaluation method: points by jinx/points by opponent
-            if(pointsByOpponent != 0){
-                    result = pointsByJinx/(float)(pointsByOpponent);
-//                        result = -pointsByOpponent;
+//            if(pointsByOpponent != 0){
+//                    result = pointsByJinx/(float)(pointsByOpponent);
+////                        result = -pointsByOpponent;
+//            }else{
+//                    result = pointsByJinx*1.1f;
+//            }
+            
+            //so 16:8 is worse than 17:9 
+            if(pointsByJinx > pointsByOpponent){
+                result = 1.1f * pointsByJinx - pointsByOpponent;
+                
+            }else if(pointsByJinx == pointsByOpponent){
+                result = pointsByJinx - pointsByOpponent;
+                
             }else{
-                    result = pointsByJinx*1.1f;
+                result = pointsByJinx - 1.1f * pointsByOpponent;
             }
+            
+            
+            /*v1,h1,v2,h2 the higher the better for horizontal player:
+             => the smaller h the better
+             => the higher v the better
+             - v1, h1 are more important than v2 and h2
+            
+            version 1: (f * v1 + v2) / (f * h1 + h2)
+            version 2: v1 / h1
+               
+                
+            */
+            
+            
 //                if(pointsByOpponent != 0){
 //			result = 1/(float)(pointsByOpponent);
 //		}else{
@@ -237,16 +262,16 @@ public class Board {
                                                                     {0, 4}
             };
 
-            final int[][] goodFields2 = {                                    {0, -4},
-                                                                    {-1, -3}, {0, -3}, {1, -3}, 
-                                              {-2, -2}, {-1, -2}, {0, -2}, {1, -2}, {2, -2},
-                            {-3, -1}, {-2, -1}, {-1, -1}, {0, -1}, {1, -1}, {2, -1}, {3, -1},
-                            {-4,0}, {-3,  0}, {-2,  0}, {-1,  0},          {1,  0}, {2,  0}, {3,  0}, {4,0},
-                            {-3,  1}, {-2,  1}, {-1,  1}, {0,  1}, {1,  1}, {2,  1}, {3,  1},
-                                              {-2,  2}, {-1,  2}, {0,  2}, {1,  2}, {2,  2},
-                                                                    {-1,  3}, {0,  3}, {1,  3},
-                                                                    {0, 4}
-            };
+//            final int[][] goodFields2 = {                                    {0, -4},
+//                                                                    {-1, -3}, {0, -3}, {1, -3}, 
+//                                              {-2, -2}, {-1, -2}, {0, -2}, {1, -2}, {2, -2},
+//                            {-3, -1}, {-2, -1}, {-1, -1}, {0, -1}, {1, -1}, {2, -1}, {3, -1},
+//                            {-4,0}, {-3,  0}, {-2,  0}, {-1,  0},          {1,  0}, {2,  0}, {3,  0}, {4,0},
+//                            {-3,  1}, {-2,  1}, {-1,  1}, {0,  1}, {1,  1}, {2,  1}, {3,  1},
+//                                              {-2,  2}, {-1,  2}, {0,  2}, {1,  2}, {2,  2},
+//                                                                    {-1,  3}, {0,  3}, {1,  3},
+//                                                                    {0, 4}
+//            };
 
 //                final int[][] goodFields = {
 //                                                              {0, -3}, 
@@ -436,8 +461,8 @@ public class Board {
             return true;
     }
 
-    Field minXField, minYField, maxXField, maxYField;
-    ArrayList<Field> alreadyVisited = new ArrayList<Field>();
+    private Field minXField, minYField, maxXField, maxYField;
+    private ArrayList<Field> alreadyVisited = new ArrayList<Field>();
     private int pointsWithField(Field f, boolean isPlayingVertical){
         minXField = f; 
         maxXField = f;
