@@ -37,8 +37,8 @@ public class Jinx {
             
             System.out.println("Round " + gameState.getRound() + "  ----------------------");
 
-            Move selection;
-
+            Move selection = null;
+              
             if(gameState.getTurn() == 0){
                 jinxIsPlayingVertical = true;
 
@@ -54,12 +54,17 @@ public class Jinx {
                     board = new Board(gameState);
                     board.getField(firstMove.getX(), firstMove.getY()).setFieldColor(FieldColor.OPPONENT);
                 }
+                if (gameState.getTurn() > 1){
+                      //update board (add move (and sometimes connection) by opponent)
+                    board.updateBoard(board.getField(gameState.getLastMove().getX(), gameState.getLastMove().getY()), false);
 
-                //update board (add move (and sometimes connection) by opponent)
-                board.updateBoard(board.getField(gameState.getLastMove().getX(), gameState.getLastMove().getY()), false);
-
-                Field nextMove = calcBestMoveIterative(board.getField(gameState.getLastMove().getX(), gameState.getLastMove().getY()),lastMoveByJinx, TIMELIMIT);
-                selection = new Move(nextMove.getX(), nextMove.getY());
+                    Field nextMove = calcBestMoveIterative(board.getField(gameState.getLastMove().getX(), gameState.getLastMove().getY()),lastMoveByJinx, TIMELIMIT);
+                    selection = new Move(nextMove.getX(), nextMove.getY()); 
+                
+                } else if(gameState.getTurn() == 1){
+                    selection = new Move(getSecondMove(gameState).getX(), getSecondMove(gameState).getY());
+                    System.out.println("SECOND MOVE: "+ selection.getX() + ", " + selection.getY());
+                }
             }
 
             //update board (add move (and sometimes connection) by jinx)
@@ -491,6 +496,167 @@ public class Jinx {
                 return result;
         }
         
+        private static Move getSecondMove (GameState gameState) {
+            Move result = null;
+            int rowX = gameState.getLastMove().getX();
+                
+                //Level 3
+            //find cooridors between swamps and get best Row for the MoveY
+                 //System.out.println("Debug3");
+                
+                 
+                 ArrayList<Move> secondMove1 = new ArrayList();
+                 ArrayList<Move> secondMove2 = new ArrayList();
+                 
+                 secondMove1.addAll(gameState.getPossibleMoves());
+                 
+                  //System.out.println("Debug3.5");
+                  
+                //gets all Y-Rows where no  swamps are
+                ArrayList<Integer> noSwampY = new ArrayList();
+                boolean swampRow;
+                
+                
+                String bal = board.getField(7, 8).getFieldColor().toString();
+                
+                
+                for (int j = 1; j <= 23; j++){
+                    swampRow = false;
+                    for (int i = 1; i <= 23; i++){
+                      //  System.out.println(i + "," + j);
+                       
+                        if (swampRow == false){
+                    //        System.out.println("here 1.1");
+                            if ((board.getField(i, j).getFieldColor() == Jinx.FieldColor.BLACK || board.getField(i, j).getFieldColor() == Jinx.FieldColor.OPPONENT) && i == 23){
+                                if (!(noSwampY.contains(j))){
+                                    noSwampY.add(j);
+                  //                  System.out.println("here 1.2");
+                                }
+                            } else if (board.getField(i, j).getFieldColor() == Jinx.FieldColor.GREEN) {
+                            swampRow = true;
+                //            System.out.println("here 2.2");
+                            }
+                        }
+                    }
+                }
+                System.out.println("noSwampRows:" + noSwampY);
+                
+              //   System.out.println("Debug4");
+                 
+                //find  cooridors
+                ArrayList<Integer[]> cooridors = new ArrayList(); 
+                boolean stillCooridor = false; //flase == sseking for new ; true == have one
+                int start = 0; 
+                
+                for (int i = 1; i <= 23; i++){
+                    //System.out.println(i);
+                    if (noSwampY.contains(i) && stillCooridor == false){
+                        start = i;
+                        stillCooridor = true;
+                    } else if (stillCooridor == true && !noSwampY.contains(i) || i == 23 ){
+                        int helper = i - 1;
+                        Integer [] a = {start, helper};
+                        cooridors.add(a);
+                        stillCooridor = false;
+                    }
+                }
+                
+                System.out.print("SwampFreeCooridors:");
+                for (Integer[] outer : cooridors) {
+                    for(Integer inner : outer) {
+                      System.out.print(inner + ",");
+                    }
+                  }
+                System.out.println("");
+                
+                //find largest Cooridor
+                int indexOfLargestCor = 1000;
+                int size = 0;
+                int indexOfSecondLargestCor = 1000;
+                
+                for (int i = 0; i < cooridors.size(); i++){
+                    //System.out.println("i: " + i);
+                    if (size <= (cooridors.get(i)[1] - cooridors.get(i)[0])){
+                        size = cooridors.get(i)[1] - cooridors.get(i)[0];
+                        indexOfSecondLargestCor = indexOfLargestCor;
+                        indexOfLargestCor = i;
+                    }
+                }
+                
+                System.out.println("indexOfLargestCor: "  + indexOfLargestCor);
+                
+                //get right rowY
+                float center = ((cooridors.get(indexOfLargestCor)[1] - cooridors.get(indexOfLargestCor)[0]) / 2);
+                    
+                System.out.println(center);
+                
+                float rowY;
+                rowY = cooridors.get(indexOfLargestCor)[0] + center;
+                
+                
+                
+                if (rowY < 12 ) {
+                    rowY = (int) (rowY + 0.5);
+                }else if(rowY > 12){
+                    rowY = (int) Math.floor(rowY);
+                }
+                
+                System.out.println("rowY: " + rowY);
+                
+//                get all Moves with the right Y of the preselectet
+//                for (int i = 0; i < secondMove1.size(); i++){
+//                    if (secondMove1.get(i).getY() == rowY ){
+//                        secondMove2.add(secondMove1.get(i));
+//                        System.out.println(secondMove1.get(i).getX() + ", " + secondMove1.get(i).getY());
+//                    }
+//                }
+                
+//                boolean movefound = false;
+//                    
+//                ArrayList<Move> findMostMiddle = new ArrayList();
+//                
+//                 for (int i = 0; i < gameState.getPossibleMoves().size() && !movefound; i++) {
+//                     //System.out.println("lastloop" + i);
+//                        //if in largest kooridor
+//                        if (gameState.getPossibleMoves().get(i).getY() <= cooridors.get(indexOfLargestCor)[1] && gameState.getPossibleMoves().get(i).getY() >= cooridors.get(indexOfLargestCor)[0]) {
+//                       //     System.out.println("con 1: " + gameState.getPossibleMoves().get(i).getX() + "," + gameState.getPossibleMoves().get(i).getY());
+//                            //if in rowX of first Move
+//                            if (gameState.getPossibleMoves().get(i).getX() == gameState.getLastMove().getX()) {
+//                           //     System.out.println("con 2");
+//                                //if +4 || -4 far away on X
+//                                if ((gameState.getPossibleMoves().get(i).getY() >= (gameState.getLastMove().getY() + 4)) || (gameState.getPossibleMoves().get(i).getY() <= (gameState.getLastMove().getY() - 4))){
+//                         //           System.out.println("con 3: " + gameState.getPossibleMoves().get(i).getX() + "," + gameState.getPossibleMoves().get(i).getY());
+//                                    findMostMiddle.add(new Move(gameState.getPossibleMoves().get(i).getX() , gameState.getPossibleMoves().get(i).getY()));
+//                                    
+//                                    //movefound = true;
+//                                }
+//                            }
+//                        }
+//                    }
+//             int best = 1000; 
+//             int diffOfBest = 1000;   
+//             int diffOcc = 1000;
+//             
+//             for (int i = 0; i < findMostMiddle.size(); i++ ){
+//                 //System.out.println("diff of best: "+i + "CorrdsY: "+ findMostMiddle.get(i).getY());
+//                 diffOcc = (int) Math.abs(rowY - findMostMiddle.get(i).getY());
+//                 System.out.println(diffOcc);
+//                 if (diffOcc < diffOfBest) {
+//                     diffOfBest = diffOcc;
+//                   //  System.out.println(findMostMiddle.get(i).getX()+ "," +findMostMiddle.get(i).getY()+ ",diffOfBest:  " +diffOfBest);
+//                     best = i;
+//                 }
+//             }    
+                
+            result = getSecondMoveSub(indexOfLargestCor, gameState, cooridors, (int) rowY);
+
+             if (result == null) {
+                 result = getSecondMoveSub(indexOfSecondLargestCor, gameState, cooridors, (int) rowY);
+             }
+                 
+            return result;
+        }
+        
 	private static void printPossibleMoves(List<Move> possibleMoves){
 		System.out.println("Possible Moves:");
 		int i=1;
@@ -508,8 +674,55 @@ public class Jinx {
             }
             return clone;
         }
+        
+        private static Move getSecondMoveSub (int corIndex, GameState gameState, ArrayList<Integer[]> cooridors, int rowY){
+            boolean movefound = false;
+                    
+                ArrayList<Move> findMostMiddle = new ArrayList();
+                
+                 for (int i = 0; i < gameState.getPossibleMoves().size() && !movefound; i++) {
+                     //System.out.println("lastloop" + i);
+                        //if in largest kooridor
+                        if (gameState.getPossibleMoves().get(i).getY() <= cooridors.get(corIndex)[1] && gameState.getPossibleMoves().get(i).getY() >= cooridors.get(corIndex)[0]) {
+                       //     System.out.println("con 1: " + gameState.getPossibleMoves().get(i).getX() + "," + gameState.getPossibleMoves().get(i).getY());
+                            //if in rowX of first Move
+                            if (gameState.getPossibleMoves().get(i).getX() == gameState.getLastMove().getX()) {
+                           //     System.out.println("con 2");
+                                //if +4 || -4 far away on X
+                                if ((gameState.getPossibleMoves().get(i).getY() >= (gameState.getLastMove().getY() + 4)) || (gameState.getPossibleMoves().get(i).getY() <= (gameState.getLastMove().getY() - 4))){
+                         //           System.out.println("con 3: " + gameState.getPossibleMoves().get(i).getX() + "," + gameState.getPossibleMoves().get(i).getY());
+                                    findMostMiddle.add(new Move(gameState.getPossibleMoves().get(i).getX() , gameState.getPossibleMoves().get(i).getY()));
+                                    
+                                    //movefound = true;
+                                }
+                            }
+                        }
+                    }
+             int best = 1000; 
+             int diffOfBest = 1000;   
+             int diffOcc = 1000;
+             
+             for (int i = 0; i < findMostMiddle.size(); i++ ){
+                 //System.out.println("diff of best: "+i + "CorrdsY: "+ findMostMiddle.get(i).getY());
+                 diffOcc = (int) Math.abs(rowY - findMostMiddle.get(i).getY());
+                 System.out.println(diffOcc);
+                 if (diffOcc < diffOfBest) {
+                     diffOfBest = diffOcc;
+                   //  System.out.println(findMostMiddle.get(i).getX()+ "," +findMostMiddle.get(i).getY()+ ",diffOfBest:  " +diffOfBest);
+                     best = i;
+                 }
+             }
+             
+            Move  result = null;
+             
+            if(best != 1000){   
+                 result = new Move(findMostMiddle.get(best).getX(), findMostMiddle.get(best).getY());
+             }
+            return result;
+        }
 	
 }
+
 
 
 
