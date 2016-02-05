@@ -511,21 +511,16 @@ public class Jinx {
                 String bal = board.getField(7, 8).getFieldColor().toString();
                 
                 
-                for (int j = 1; j <= 23; j++){
+                for (int j = 1; j <= 22; j++){
                     swampRow = false;
-                    for (int i = 1; i <= 23; i++){
-                      //  System.out.println(i + "," + j);
-                       
+                    for (int i = 1; i <= 22; i++){
                         if (swampRow == false){
-                    //        System.out.println("here 1.1");
-                            if ((board.getField(i, j).getFieldColor() == Jinx.FieldColor.BLACK || board.getField(i, j).getFieldColor() == Jinx.FieldColor.OPPONENT) && i == 23){
+                            if ((board.getField(i, j).getFieldColor() == Jinx.FieldColor.BLACK || board.getField(i, j).getFieldColor() == Jinx.FieldColor.OPPONENT) && i == 22){
                                 if (!(noSwampY.contains(j))){
                                     noSwampY.add(j);
-                  //                  System.out.println("here 1.2");
-                                }
+                                  }
                             } else if (board.getField(i, j).getFieldColor() == Jinx.FieldColor.GREEN) {
                             swampRow = true;
-                //            System.out.println("here 2.2");
                             }
                         }
                     }
@@ -539,17 +534,23 @@ public class Jinx {
                 boolean stillCooridor = false; //flase == sseking for new ; true == have one
                 int start = 0; 
                 
-                for (int i = 1; i <= 23; i++){
+                for (int i = 1; i <= 22; i++){
                     //System.out.println(i);
                     if (noSwampY.contains(i) && stillCooridor == false){
                         start = i;
                         stillCooridor = true;
-                    } else if (stillCooridor == true && !noSwampY.contains(i) || i == 23 ){
+                    } else if (stillCooridor == true && !noSwampY.contains(i)){
                         int helper = i - 1;
                         Integer [] a = {start, helper};
                         cooridors.add(a);
                         stillCooridor = false;
                     }
+                }
+                
+                if (stillCooridor) {
+                        Integer [] a = {start, 21};
+                        cooridors.add(a);
+                        stillCooridor = false;
                 }
                 
                 System.out.print("SwampFreeCooridors:");
