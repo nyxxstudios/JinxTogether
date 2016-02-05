@@ -502,16 +502,7 @@ public class Jinx {
                 
                 //Level 3
             //find cooridors between swamps and get best Row for the MoveY
-                 //System.out.println("Debug3");
-                
-                 
-                 ArrayList<Move> secondMove1 = new ArrayList();
-                 ArrayList<Move> secondMove2 = new ArrayList();
-                 
-                 secondMove1.addAll(gameState.getPossibleMoves());
-                 
-                  //System.out.println("Debug3.5");
-                  
+         
                 //gets all Y-Rows where no  swamps are
                 ArrayList<Integer> noSwampY = new ArrayList();
                 boolean swampRow;
@@ -602,58 +593,13 @@ public class Jinx {
                 }
                 
                 System.out.println("rowY: " + rowY);
-                
-//                get all Moves with the right Y of the preselectet
-//                for (int i = 0; i < secondMove1.size(); i++){
-//                    if (secondMove1.get(i).getY() == rowY ){
-//                        secondMove2.add(secondMove1.get(i));
-//                        System.out.println(secondMove1.get(i).getX() + ", " + secondMove1.get(i).getY());
-//                    }
-//                }
-                
-//                boolean movefound = false;
-//                    
-//                ArrayList<Move> findMostMiddle = new ArrayList();
-//                
-//                 for (int i = 0; i < gameState.getPossibleMoves().size() && !movefound; i++) {
-//                     //System.out.println("lastloop" + i);
-//                        //if in largest kooridor
-//                        if (gameState.getPossibleMoves().get(i).getY() <= cooridors.get(indexOfLargestCor)[1] && gameState.getPossibleMoves().get(i).getY() >= cooridors.get(indexOfLargestCor)[0]) {
-//                       //     System.out.println("con 1: " + gameState.getPossibleMoves().get(i).getX() + "," + gameState.getPossibleMoves().get(i).getY());
-//                            //if in rowX of first Move
-//                            if (gameState.getPossibleMoves().get(i).getX() == gameState.getLastMove().getX()) {
-//                           //     System.out.println("con 2");
-//                                //if +4 || -4 far away on X
-//                                if ((gameState.getPossibleMoves().get(i).getY() >= (gameState.getLastMove().getY() + 4)) || (gameState.getPossibleMoves().get(i).getY() <= (gameState.getLastMove().getY() - 4))){
-//                         //           System.out.println("con 3: " + gameState.getPossibleMoves().get(i).getX() + "," + gameState.getPossibleMoves().get(i).getY());
-//                                    findMostMiddle.add(new Move(gameState.getPossibleMoves().get(i).getX() , gameState.getPossibleMoves().get(i).getY()));
-//                                    
-//                                    //movefound = true;
-//                                }
-//                            }
-//                        }
-//                    }
-//             int best = 1000; 
-//             int diffOfBest = 1000;   
-//             int diffOcc = 1000;
-//             
-//             for (int i = 0; i < findMostMiddle.size(); i++ ){
-//                 //System.out.println("diff of best: "+i + "CorrdsY: "+ findMostMiddle.get(i).getY());
-//                 diffOcc = (int) Math.abs(rowY - findMostMiddle.get(i).getY());
-//                 System.out.println(diffOcc);
-//                 if (diffOcc < diffOfBest) {
-//                     diffOfBest = diffOcc;
-//                   //  System.out.println(findMostMiddle.get(i).getX()+ "," +findMostMiddle.get(i).getY()+ ",diffOfBest:  " +diffOfBest);
-//                     best = i;
-//                 }
-//             }    
-                
-            result = getSecondMoveSub(indexOfLargestCor, gameState, cooridors, (int) rowY);
+                            
+                result = getSecondMoveSub(indexOfLargestCor, gameState, cooridors, (int) rowY);
 
-             if (result == null) {
-                 result = getSecondMoveSub(indexOfSecondLargestCor, gameState, cooridors, (int) rowY);
-             }
-                 
+                 if (result == null) {
+                     result = getSecondMoveSub(indexOfSecondLargestCor, gameState, cooridors, (int) rowY);
+                 }
+
             return result;
         }
         
