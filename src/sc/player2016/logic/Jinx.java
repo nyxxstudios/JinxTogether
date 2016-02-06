@@ -44,26 +44,25 @@ public class Jinx {
 
                 //initialize board
                 board = new Board(gameState);
-                selection = getFirstMoveOfGameJep();
+                selection = getFirstMove();
             }else{
                 if(gameState.getTurn() == 1){
                     jinxIsPlayingVertical = false;
 
                     //initialize board
-                    Move firstMove = gameState.getLastMove();
                     board = new Board(gameState);
-                    board.getField(firstMove.getX(), firstMove.getY()).setFieldColor(FieldColor.OPPONENT);
-                }
-                if (gameState.getTurn() > 1){
-                      //update board (add move (and sometimes connection) by opponent)
+                    Move firstMove = gameState.getLastMove();
+                    //don't just set field color (also set start/end field of opponent graph)
+                    board.updateBoard(board.getField(gameState.getLastMove().getX(), gameState.getLastMove().getY()), false);
+                    
+                    selection = getSecondMove(gameState);
+                    System.out.println("SECOND MOVE: "+ selection.getX() + ", " + selection.getY());
+                }else{
+                    //update board (add move (and sometimes connection or start/end field) by opponent)
                     board.updateBoard(board.getField(gameState.getLastMove().getX(), gameState.getLastMove().getY()), false);
 
                     Field nextMove = calcBestMoveIterative(board.getField(gameState.getLastMove().getX(), gameState.getLastMove().getY()),lastMoveByJinx, TIMELIMIT);
                     selection = new Move(nextMove.getX(), nextMove.getY()); 
-                
-                } else if(gameState.getTurn() == 1){
-                    selection = new Move(getSecondMove(gameState).getX(), getSecondMove(gameState).getY());
-                    System.out.println("SECOND MOVE: "+ selection.getX() + ", " + selection.getY());
                 }
             }
 
@@ -265,24 +264,9 @@ public class Jinx {
 		return minValue;
 	}
 	
-	//Gets first move of the game (is just needed, when Jinx begins) depending on 
-	//the positions of the green fields (maxNumberOfGreenFields = 3x3 + 2x2 + 2x2 + 1 = 18)
-	private static Move getFirstMoveOfGame(){
-		Move result = null;
-		
-		//in jinx 0.01 the first move will be on a field (x,y) with 10 <= x <= 14
-		// and 10 <= y <= 14 .
-		for(int row = 10; row<=14 && result == null; row++){
-			for(int col=10; col<=14 && result == null; col++){
-				if(board.getField(row, col).getFieldColor() == FieldColor.BLACK)
-					result = new Move(row, col);
-			}
-		}
-		
-		return result;
-	}
-	
-        private static Move getFirstMoveOfGameJep(){
+        //Gets first move of the game (is just needed, when Jinx begins) depending on 
+	//the positions of the swamps (maxNumberOfSwampFields = 3x3 + 2x2 + 2x2 + 1 = 18)
+        private static Move getFirstMove(){
 		boolean isSwampInColumn;
                 int startColOfLongestDistance = 1;
                 int endColOfLongestDistance = 1;
@@ -332,7 +316,6 @@ public class Jinx {
 		return new Move(col, row);
 	}
 	
-        
         private static Move getFirstMoveOfGameGK(GameState gameState) {
                 ArrayList<Move> firstMoves1 = new ArrayList();
                 ArrayList<Move> firstMoves2 = new ArrayList();
