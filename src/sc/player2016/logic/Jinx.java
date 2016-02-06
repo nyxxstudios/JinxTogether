@@ -58,20 +58,39 @@ public class Jinx {
                     selection = getSecondMove(gameState);
                     System.out.println("SECOND MOVE: "+ selection.getX() + ", " + selection.getY());
                 }else{
+                    System.out.println("startOpponent: " + board.startOfOpponentGraph);
                     //update board (add move (and sometimes connection or start/end field) by opponent)
                     board.updateBoard(board.getField(gameState.getLastMove().getX(), gameState.getLastMove().getY()), false);
-
+                    
+                    System.out.println("startOpponent: " + board.startOfOpponentGraph);
+                    
                     Field nextMove = calcBestMoveIterative(board.getField(gameState.getLastMove().getX(), gameState.getLastMove().getY()),lastMoveByJinx, TIMELIMIT);
                     selection = new Move(nextMove.getX(), nextMove.getY()); 
+                    
+                    
                 }
             }
-
+            
+            System.out.println("startJinx: " + board.startOfJinxGraph);
             //update board (add move (and sometimes connection) by jinx)
             board.updateBoard(board.getField(selection.getX(), selection.getY()), true);
+            System.out.println("startJinx: " + board.startOfJinxGraph);
+            
             System.out.println("startJinx = " + board.startOfJinxGraph + "  endJinx = " + board.endOfJinxGraph);	
             System.out.println("startOpponent = " + board.startOfOpponentGraph + "  endOpponent = " + board.endOfOpponentGraph);
             System.out.println("pointsJinx = " + board.pointsByJinx + "  pointsOpponent = " + board.pointsByOpponent);
             System.out.println(board.getNumberOfSetFields() + " stones set");
+            
+            
+            
+            if(gameState.getTurn() > 1){
+                board.evaluateCurrentConflictzone();
+            }else{
+                System.out.println(board.getSquaredDistance(board.getField(4,5), board.getField(7,8)));
+                System.out.println(board.getSquaredDistance(board.getField(17,5), board.getField(7,19)));
+                System.out.println(board.getSquaredDistance(board.getField(5,5), board.getField(7,7)));
+            }
+            
             lastMoveByJinx = board.getField(selection.getX(), selection.getY());
             return selection;
 	}

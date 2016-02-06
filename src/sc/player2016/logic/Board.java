@@ -10,8 +10,8 @@ import sc.plugin2016.Move;
 public class Board {
     Field[][] fields = new Field[24][24];
 
-    int pointsByJinx = 0;
-    int pointsByOpponent = 0;
+    int pointsByJinx = -1;
+    int pointsByOpponent = -1;
 
     //save start and end field of the 'max graphs' (graphs that are worth 
     //the most points) of jinx and the opponent. Set in updateMove/undoMove.
@@ -42,9 +42,19 @@ public class Board {
             if(isJinxMove){
                     fieldColor = FieldColor.JINX;
                     isPlayingVertical = Jinx.jinxIsPlayingVertical;
+                    if(pointsByJinx == -1){
+                        pointsByJinx = 0;
+                        startOfJinxGraph = move;
+                        endOfJinxGraph = move;
+                    }
             }else{
                     fieldColor = FieldColor.OPPONENT; 
                     isPlayingVertical = !Jinx.jinxIsPlayingVertical;
+                    if(pointsByOpponent == -1){
+                        pointsByOpponent = 0;
+                        startOfOpponentGraph = move;
+                        endOfOpponentGraph = move;
+                    }
             }
 
             int x = move.getX();
@@ -83,16 +93,16 @@ public class Board {
                                                             pointsByJinx = pointsWithThisField;
                                                             startOfJinxGraph = startJinxField;
                                                             endOfJinxGraph = endJinxField;
-//								System.out.println("New score for jinx = " + pointsByJinx);
-//                                                            System.out.println("startJinx = " + startOfJinxGraph + "  endJinx = " + endOfJinxGraph + " cause of updateMove");
+								System.out.println("New score for jinx = " + pointsByJinx);
+                                                            System.out.println("startJinx = " + startOfJinxGraph + "  endJinx = " + endOfJinxGraph + " cause of updateMove");
                                                     }
                                             }else{
                                                     if(pointsByOpponent < pointsWithThisField){
                                                             pointsByOpponent = pointsWithThisField;
                                                             startOfOpponentGraph = startOpponentField;
                                                             endOfOpponentGraph = endOpponentField;
-//                                                            System.out.println("startOpponent = " + startOfOpponentGraph + "  endOpponent = " + endOfOpponentGraph + " cause of upadteMove");
-//								System.out.println("New score for opponent = " + pointsByOpponent);
+                                                            System.out.println("startOpponent = " + startOfOpponentGraph + "  endOpponent = " + endOfOpponentGraph + " cause of upadteMove");
+								System.out.println("New score for opponent = " + pointsByOpponent);
                                                     }
                                             }
 //						System.out.println("Connection added between (" + x + "," + y + ") and (" + pX + "," + pY + ")");
@@ -181,14 +191,14 @@ public class Board {
                             pointsByJinx = pointsAfterRemoving;
                             startOfJinxGraph = startFieldAfterRemoving;
                             endOfJinxGraph = endFieldAfterRemoving;
-//				System.out.println("pointsByJinx = " + pointsByJinx + " cause of undoMove");
-//                            System.out.println("startJinx = " + startOfJinxGraph + "  endJinx = " + endOfJinxGraph + " cause of undoMove");
+				System.out.println("pointsByJinx = " + pointsByJinx + " cause of undoMove");
+                            System.out.println("startJinx = " + startOfJinxGraph + "  endJinx = " + endOfJinxGraph + " cause of undoMove");
                     }else{
                             pointsByOpponent = pointsAfterRemoving;
                             startOfOpponentGraph = startFieldAfterRemoving;
                             endOfOpponentGraph = endFieldAfterRemoving;
-//				System.out.println("pointsByOpponent = " + pointsByOpponent + " cause of undoMove");
-//                            System.out.println("startOpponent = " + startOfOpponentGraph + "  endOpponent = " + endOfOpponentGraph + " cause of undoMove");
+				System.out.println("pointsByOpponent = " + pointsByOpponent + " cause of undoMove");
+                            System.out.println("startOpponent = " + startOfOpponentGraph + "  endOpponent = " + endOfOpponentGraph + " cause of undoMove");
                     }
             }
 
@@ -241,6 +251,110 @@ public class Board {
             return result;
     }
 
+    float evaluateCurrentConflictzone(){
+        //find conflictzone and set the 2 relevant points
+        //(reduce every conflictzone to a conflict in the down-left corner:
+        //vertical player tries to reach the bottom and horizontal tries 
+        //to reach the left border. This is necessary to use the 'hand-calculated'
+        //formulas for the coordinate system; down-left corner of the board is 
+        //defined as coordinate origin (0|0))
+        Field pV;//vertical (playing) point of conflict zone (translated to the down-left corner equivalent)
+        Field pH;//horizontal (playing) point of conflict zone (translated to the down-left corner equivalent)
+        
+        //helper vars for setting pV and pH
+        float minSquaredDistance;
+        float help;
+        
+        
+        
+        //the translation to pV and pH is tricky because of two aspects:
+        //1. translate in another corner (down-left)
+        //2. translate in another coordinate system (origin is in down-left corner now
+        //   -> (0|23) transforms to (0|0))
+        //That is why e. g. when the conflictzone is in the up-left corner,
+        //we can just copy the points and have the right points in the down-left 
+        //corner in the new coordinate system
+        if(Jinx.jinxIsPlayingVertical){
+            //set first to startJinx to startOpponent (conflictzone: up-left)
+            minSquaredDistance = getSquaredDistance(startOfJinxGraph, startOfOpponentGraph);
+            pV = startOfJinxGraph;
+            pH = startOfOpponentGraph;
+            System.out.println("vert up-left");
+            
+            //check startJinx to endOpponent (conflictzone: up-right)
+            help = getSquaredDistance(startOfJinxGraph, endOfOpponentGraph);
+            if(help < minSquaredDistance){
+                minSquaredDistance = help;
+                pV = new Field(23 - startOfJinxGraph.getX(),    startOfJinxGraph.getY());
+                pH = new Field(23 - endOfOpponentGraph.getX(),  endOfOpponentGraph.getY());
+                System.out.println("vert up-right");
+            }
+
+            //check endJinx to startOpponent (conflictzone: down-left)
+            help = getSquaredDistance(endOfJinxGraph, startOfOpponentGraph);
+            if(help < minSquaredDistance){
+                minSquaredDistance = help;
+                pV = new Field(endOfJinxGraph.getX(),       23 - endOfJinxGraph.getY());
+                pH = new Field(startOfOpponentGraph.getX(), 23 - startOfOpponentGraph.getY());
+                System.out.println("vert down-left");
+            }
+
+            //check endJinx to endOpponent (conflictzone: down-right)
+            help = getSquaredDistance(endOfJinxGraph, endOfOpponentGraph);
+            if(help < minSquaredDistance){
+                minSquaredDistance = help;
+                pV = new Field(23 - endOfJinxGraph.getX(),     23 - endOfJinxGraph.getY());
+                pH = new Field(23 - endOfOpponentGraph.getX(), 23 - endOfOpponentGraph.getY());
+                System.out.println("vert down-right");
+            }
+            
+            
+        }else{//jinx is playing horizontal
+            //set first to startJinx to startOpponent (conflictzone: up-left)
+            minSquaredDistance = getSquaredDistance(startOfJinxGraph, startOfOpponentGraph);
+            pV = startOfOpponentGraph;
+            pH = startOfJinxGraph;
+            System.out.println("hor up-left");
+        
+            //check startJinx to endOpponent (conflictzone: down-left)
+            help = getSquaredDistance(startOfJinxGraph, endOfOpponentGraph);
+            if(help < minSquaredDistance){
+                minSquaredDistance = help;
+                pV = new Field(endOfOpponentGraph.getX(), 23 - endOfOpponentGraph.getY());
+                pH = new Field(startOfJinxGraph.getX(),   23 - startOfJinxGraph.getY());
+                System.out.println("hor down-left");
+                
+            }
+
+            //check endJinx to startOpponent (conflictzone: up-right)
+            help = getSquaredDistance(endOfJinxGraph, startOfOpponentGraph);
+            if(help < minSquaredDistance){
+                minSquaredDistance = help;
+                pV = new Field(23 - startOfOpponentGraph.getX(), startOfOpponentGraph.getY());
+                pH = new Field(23 - endOfJinxGraph.getX(),       endOfJinxGraph.getY());
+                System.out.println("hor up-right");
+            }
+
+            //check endJinx to endOpponent (conflictzone: down-right)
+            help = getSquaredDistance(endOfJinxGraph, endOfOpponentGraph);
+            if(help < minSquaredDistance){
+                minSquaredDistance = help;
+                pV = new Field(23 - endOfOpponentGraph.getX(),  23 - endOfOpponentGraph.getY());
+                pH = new Field(23 - endOfJinxGraph.getX(),      23 - endOfJinxGraph.getY());
+                System.out.println("hor down-right");
+            }
+        }
+
+        System.out.println("pV: " + pV + " pH: " + pH);
+        
+        return 0;
+    }
+    
+    float getSquaredDistance(Field a, Field b){
+        return (float) (Math.pow(Math.abs(b.getX() - a.getX()), 2) + 
+                Math.pow(Math.abs(b.getY() - a.getY()), 2));
+    }
+    
     //important part of the Jinx AI. Returns all 'good' moves
     //that can be done (returning all possible moves would be too much
     //to calculate in a senseful depth)
