@@ -79,8 +79,10 @@ public class Jinx {
             System.out.println("startJinx = " + board.startOfJinxGraph + "  endJinx = " + board.endOfJinxGraph);	
             System.out.println("startOpponent = " + board.startOfOpponentGraph + "  endOpponent = " + board.endOfOpponentGraph);
             System.out.println("pointsJinx = " + board.pointsByJinx + "  pointsOpponent = " + board.pointsByOpponent);
+            System.out.println("newPointsByJinx = " + board.calcPointsByPlayer(true) + "  newPointsByOpponent = " + board.calcPointsByPlayer(false));
             System.out.println(board.getNumberOfSetFields() + " stones set");
-            
+            System.out.println("FieldsByJinx = " + board.fieldsByJinx);
+            System.out.println("FieldsByOpponent = " + board.fieldsByOpponent);
             
             
             if(gameState.getTurn() > 1){

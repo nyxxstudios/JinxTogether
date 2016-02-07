@@ -13,6 +13,10 @@ public class Board {
     int pointsByJinx = -1;
     int pointsByOpponent = -1;
 
+    //necessary for pointCalculation
+    ArrayList<Field> fieldsByJinx = new ArrayList<>();
+    ArrayList<Field> fieldsByOpponent = new ArrayList<>();
+    
     //save start and end field of the 'max graphs' (graphs that are worth 
     //the most points) of jinx and the opponent. Set in updateMove/undoMove.
     //Read in evaluateBoard
@@ -42,6 +46,7 @@ public class Board {
             if(isJinxMove){
                     fieldColor = FieldColor.JINX;
                     isPlayingVertical = Jinx.jinxIsPlayingVertical;
+                    fieldsByJinx.add(move);
                     if(pointsByJinx == -1){
                         pointsByJinx = 0;
                         startOfJinxGraph = move;
@@ -50,6 +55,7 @@ public class Board {
             }else{
                     fieldColor = FieldColor.OPPONENT; 
                     isPlayingVertical = !Jinx.jinxIsPlayingVertical;
+                    fieldsByOpponent.add(move);
                     if(pointsByOpponent == -1){
                         pointsByOpponent = 0;
                         startOfOpponentGraph = move;
@@ -87,24 +93,33 @@ public class Board {
                                             getField(x, y).addConnectionTo(getField(pX, pY));
                                             getField(pX, pY).addConnectionTo(getField(x, y));
 
+                                            //current way, slightly faster
                                             int pointsWithThisField = pointsWithField(getField(x, y), isPlayingVertical);
                                             if (isJinxMove){
                                                     if(pointsByJinx < pointsWithThisField){
                                                             pointsByJinx = pointsWithThisField;
                                                             startOfJinxGraph = startJinxField;
                                                             endOfJinxGraph = endJinxField;
-								System.out.println("New score for jinx = " + pointsByJinx);
-                                                            System.out.println("startJinx = " + startOfJinxGraph + "  endJinx = " + endOfJinxGraph + " cause of updateMove");
+//								System.out.println("New score for jinx = " + pointsByJinx);
+//                                                            System.out.println("startJinx = " + startOfJinxGraph + "  endJinx = " + endOfJinxGraph + " cause of updateMove");
                                                     }
                                             }else{
                                                     if(pointsByOpponent < pointsWithThisField){
                                                             pointsByOpponent = pointsWithThisField;
                                                             startOfOpponentGraph = startOpponentField;
                                                             endOfOpponentGraph = endOpponentField;
-                                                            System.out.println("startOpponent = " + startOfOpponentGraph + "  endOpponent = " + endOfOpponentGraph + " cause of upadteMove");
-								System.out.println("New score for opponent = " + pointsByOpponent);
+//                                                            System.out.println("startOpponent = " + startOfOpponentGraph + "  endOpponent = " + endOfOpponentGraph + " cause of upadteMove");
+//								System.out.println("New score for opponent = " + pointsByOpponent);
                                                     }
                                             }
+                                            
+                                            //alternative way, slightly slower
+//                                            if(isJinxMove){
+//                                                pointsByJinx = calcPointsByPlayer(true);
+//                                                
+//                                            }else{
+//                                                 pointsByOpponent = calcPointsByPlayer(false);
+//                                            }
 //						System.out.println("Connection added between (" + x + "," + y + ") and (" + pX + "," + pY + ")");
                                     }else{
 //						System.out.println("Connection not possible cause of other connection");
@@ -116,93 +131,35 @@ public class Board {
     }
 
     public void undoMove(Field move, boolean isJinxMove){
-            int x = move.getX();
-            int y = move.getY();
-            FieldColor fieldColor = move.getFieldColor();
-
-            final int[][] possibleFields = {
-                            {-2, -1}, {-2, 1},
-                            {-1, -2}, {-1, 2},
-                            { 1, -2}, { 1, 2},
-                            { 2, -1}, { 2, 1}
-            };
-
-            //get all connections
-            ArrayList<Field> allConnections = new ArrayList<Field>();
-            for(Field c : move.getConnections()){
-                allConnections.add(c);
+        
+            if(isJinxMove){
+                fieldsByJinx.remove(move);
+            }else{
+                fieldsByOpponent.remove(move);
             }
 
-            //figure out if the field that becomes removed is in the graph that is worth most points
-            boolean fieldThatBecomesRemovedIsInGraphWhichIsWorthMostPoints = false;
-            if(allConnections.size() > 0){//fields that have no connection don't have to be checked later on 
-                                          //(important for start- and endField, without this they stay null in the beginning)
-                if(isJinxMove){
-                    //if field (x, y) is part of the graph that is worth most points for jinx
-                    if(pointsWithField(move, Jinx.jinxIsPlayingVertical) == pointsByJinx){
-                            fieldThatBecomesRemovedIsInGraphWhichIsWorthMostPoints = true;
-                    }
-                }else{
-                    //if field (x, y) is part of the graph that is worth most points for the opponent
-                    if(pointsWithField(move, !Jinx.jinxIsPlayingVertical) == pointsByOpponent){
-                            fieldThatBecomesRemovedIsInGraphWhichIsWorthMostPoints = true;
-                    }
-                }
+            boolean connectionsWereGreaterZero = false;
+            while(move.getConnections().size() > 0){
+                connectionsWereGreaterZero = true;
+                
+                //order of these two statements is important!
+                move.getConnections().get(0).removeConnectionTo(move);
+                move.removeConnectionTo(move.getConnections().get(0));
             }
-
-            //remove all connections and the color
-            for(Field c : allConnections){
-                    getField(x,y).removeConnectionTo(c);
-                    c.removeConnectionTo(getField(x,y));
-            }
+            
             //NOT ALWAYS BLACK (BORDER l. initBoard())!
-            getField(x, y).setFieldColor(FieldColor.BLACK);
+            move.setFieldColor(FieldColor.BLACK);
 
             //recalculate points (and start/end field)
-            //if the field (x,y) was in the graph that was worth most points
-            if(fieldThatBecomesRemovedIsInGraphWhichIsWorthMostPoints){
-                    int pointsAfterRemoving = -1;//so startFieldAfterRemoving 
-                                                //and endFieldAfterRemoving don't stay null
-                    Field startFieldAfterRemoving = null, endFieldAfterRemoving = null;
-                    int p;
-                    Field startField, endField;
-                    for(Field c : allConnections){
+            //if the field had at least 1 connection
+            if(connectionsWereGreaterZero){
+                if(isJinxMove){
+                    pointsByJinx = calcPointsByPlayer(true);
 
-                            if(isJinxMove){
-                                //calculate p, but also 
-                                //startJinxField and endJinxField
-                                p = pointsWithField(c, Jinx.jinxIsPlayingVertical);
-                                startField = startJinxField;
-                                endField = endJinxField;
-                            }else{
-                                //calculate p, but also 
-                                //startOpponentField and endOpponentField
-                                p = pointsWithField(c, !Jinx.jinxIsPlayingVertical);
-                                startField = startOpponentField;
-                                endField = endOpponentField;
-                            }
-                            if(p > pointsAfterRemoving){
-                                    pointsAfterRemoving = p;
-                                    startFieldAfterRemoving = startField;
-                                    endFieldAfterRemoving = endField;
-                            }
-                    }
-                    if(isJinxMove){
-                            pointsByJinx = pointsAfterRemoving;
-                            startOfJinxGraph = startFieldAfterRemoving;
-                            endOfJinxGraph = endFieldAfterRemoving;
-				System.out.println("pointsByJinx = " + pointsByJinx + " cause of undoMove");
-                            System.out.println("startJinx = " + startOfJinxGraph + "  endJinx = " + endOfJinxGraph + " cause of undoMove");
-                    }else{
-                            pointsByOpponent = pointsAfterRemoving;
-                            startOfOpponentGraph = startFieldAfterRemoving;
-                            endOfOpponentGraph = endFieldAfterRemoving;
-				System.out.println("pointsByOpponent = " + pointsByOpponent + " cause of undoMove");
-                            System.out.println("startOpponent = " + startOfOpponentGraph + "  endOpponent = " + endOfOpponentGraph + " cause of undoMove");
-                    }
+                }else{
+                     pointsByOpponent = calcPointsByPlayer(false);
+                }
             }
-
-            
     }
 
     public float evaluateBoardPosition(){
@@ -575,7 +532,7 @@ public class Board {
             return true;
     }
 
-    private Field minXField, minYField, maxXField, maxYField;
+    
     private ArrayList<Field> alreadyVisited = new ArrayList<Field>();
     private int pointsWithField(Field f, boolean isPlayingVertical){
         minXField = f; 
@@ -627,7 +584,111 @@ public class Board {
             }
         }
     }
-//        
+//      
+    private ArrayList<Field> fieldsToVisit = new ArrayList<>();
+    private Field minXField, minYField, maxXField, maxYField;
+    private Field minXFieldWithThisGraph, minYFieldWithThisGraph, 
+            maxXFieldWithThisGraph, maxYFieldWithThisGraph;
+    private Field help;
+    int calcPointsByPlayer(boolean isJinx){
+        
+        if(isJinx){
+            //copy fieldsByJinx
+            for(Field f : fieldsByJinx){ fieldsToVisit.add(f); }
+        }else{
+            //copy fieldsByOpponent
+            for(Field f : fieldsByOpponent){ fieldsToVisit.add(f); }
+        }
+        
+        if(fieldsToVisit.size() > 0){
+            minXField = fieldsToVisit.get(0); 
+            maxXField = fieldsToVisit.get(0);
+            minYField = fieldsToVisit.get(0);
+            maxYField = fieldsToVisit.get(0);
+        }else{
+            minXField = null; 
+            maxXField = null;
+            minYField = null;
+            maxYField = null;
+            return 0;
+        }
+        
+        //iterate over EACH different graph
+        while(fieldsToVisit.size() > 0){
+            help = fieldsToVisit.get(0);
+            minXFieldWithThisGraph = help;
+            minYFieldWithThisGraph = help;
+            maxXFieldWithThisGraph = help;
+            maxYFieldWithThisGraph = help;
+            fieldsToVisit.remove(0);
+            calcPoints2(help);
+            
+            if(isJinx == Jinx.jinxIsPlayingVertical){//player is playing vertical
+                if(maxYFieldWithThisGraph.getY() - minYFieldWithThisGraph.getY() 
+                        > maxYField.getY() - minYField.getY()){
+                    maxYField = maxYFieldWithThisGraph;
+                    minYField = minYFieldWithThisGraph;
+                }
+            }else{//player is playing horizontal
+                if(maxXFieldWithThisGraph.getX() - minXFieldWithThisGraph.getX() 
+                        > maxXField.getX() - minXField.getX()){
+                    maxXField = maxXFieldWithThisGraph;
+                    minXField = minXFieldWithThisGraph;
+                }
+            }
+        }
+        
+        if(isJinx){
+            if(Jinx.jinxIsPlayingVertical){//move by jinx (vertical)
+//                startJinxField = minYField;
+//                endJinxField = maxYField;
+                startOfJinxGraph = minYField;
+                endOfJinxGraph = maxYField;
+                return maxYField.getY() - minYField.getY();
+            }else{                        //move by jinx (horizontal)
+//                startJinxField = minXField;
+//                endJinxField = maxXField;
+                startOfJinxGraph = minXField;
+                endOfJinxGraph= maxXField;
+                
+                return maxYField.getX() - minYField.getX();
+            }
+            
+        }else{
+            if(Jinx.jinxIsPlayingVertical){//move by opponent (horizontal)
+//                startOpponentField = minXField;
+//                endOpponentField = maxXField;
+                startOfOpponentGraph = minXField;
+                endOfOpponentGraph = maxXField;
+                return maxXField.getX() - minXField.getX();
+
+            }else{                         //move by opponent (vertical)
+//                startOpponentField = minYField;
+//                endOpponentField = maxYField;
+                startOfOpponentGraph = minYField;
+                endOfOpponentGraph = maxYField;
+                return maxXField.getY() - minXField.getY();
+            }
+        }
+    }
+    
+    private void calcPoints2(Field f){
+        ArrayList<Field> connections = f.getConnections();
+        for(Field c : connections){
+            if(fieldsToVisit.contains(c)){
+                if(c.getX() < minXFieldWithThisGraph.getX())minXFieldWithThisGraph = c;
+                if(c.getX() > maxXFieldWithThisGraph.getX())maxXFieldWithThisGraph = c;
+                if(c.getY() < minYFieldWithThisGraph.getY())minYFieldWithThisGraph = c;
+                if(c.getY() > maxYFieldWithThisGraph.getY())maxYFieldWithThisGraph = c;
+
+                fieldsToVisit.remove(c);
+                calcPoints2(c);
+            }
+        }
+    }
+//    
+    
+    
     private void initFields(GameState gameState){
             List<Move> possibleMoves = gameState.getPossibleMoves();
 
