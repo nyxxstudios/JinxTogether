@@ -25,6 +25,12 @@ public class Evaluator {
                     result = pointsByJinx*1.1f;
             }
             
+//            result += 0.1 * evaluateCurrentConflictzone(startOfJinxGraph, endOfJinxGraph, 
+//                    startOfOpponentGraph, endOfOpponentGraph, isVertsMove);
+//            if (evaluateCurrentConflictzone(startOfJinxGraph, endOfJinxGraph, 
+//                    startOfOpponentGraph, endOfOpponentGraph, isVertsMove) < 0){
+//                result -= 10;
+//            }
             //so 16:8 is worse than 17:9 
 //            if(pointsByJinx > pointsByOpponent){
 //                result = 1.1f * pointsByJinx - pointsByOpponent;
@@ -63,7 +69,7 @@ public class Evaluator {
 
     private static Field pV;//vertical (playing) point of conflict zone (translated to the down-left corner equivalent)
     private static Field pH;//horizontal (playing) point of conflict zone (translated to the down-left corner equivalent)
-    static boolean evaluateCurrentConflictzone(Field startOfJinxGraph, Field endOfJinxGraph,
+    static float evaluateCurrentConflictzone(Field startOfJinxGraph, Field endOfJinxGraph,
             Field startOfOpponentGraph, Field endOfOpponentGraph, boolean isVertsMove){
         //find conflictzone and set the 2 relevant points
         //(reduce every conflictzone to a conflict in the down-left corner:
@@ -75,15 +81,15 @@ public class Evaluator {
         calcPVAndPH(startOfJinxGraph, endOfJinxGraph, 
                 startOfOpponentGraph, endOfOpponentGraph);
         
-        //IT IS ALWAYS VERTS MOVE, MAKES THINGS A LOT EASIER
+        //IT IS ALWAYS VERTS MOVE, THAT MAKES THINGS A LOT EASIER
         if(!isVertsMove){
             Field f = pV;
             pV = new Field(pH.getY(), pH.getX());
             pH = new Field(f.getY(), f.getX());
         }
-        //now it is verts move ;)
+        //now it is verts move ;)   
         
-        System.out.println("pV = " + pV + " and pH = " + pH);
+//        System.out.println("pV = " + pV + " and pH = " + pH);
         
         
         
@@ -104,18 +110,18 @@ public class Evaluator {
         h3(x) =  2   * x - 2   * xH + yH
         for the horizontal player (h0 would be best, h3 worst).
         
-        This function now figures out which is the best line for the
-        CURRENT player that the other cannot beat (be faster at the intersection point
-        with any of his lines lines). If there is no such line it figures out 
-        wich is the best line for the other player. 
-        There can be 3 different results:
-        1) Current player has a line that beats all opponent lines
-        2) Other player has a line that beats all lines of current player
-        3) Both players have a line that cannot be beaten by the opponent
-           -> parallel
+        This function now figures out which is the best line for each player
+        that the opponent cannot beat. There can be 3 different results:
+        1) Both players have a line that cannot be beaten by the other player
+           (Common case, parallel or intersection point out of relevant area)
+        2) Current player has a line that beats all opponent lines
+        3) Other player has a line that beats all lines of current player
         
+        Now the points (distance from intersection point of line with border 
+        (x-axis for vertical player, y-axis for horizontal player) to (0|0))
+        are calculated for the found lines.
         */
-        
+        int factor = isVertsMove==Jinx.jinxIsPlayingVertical?1:-1; //for return statements
         int minNotBeatableLineByOpponent = -1;
         int minNotBeatableLineByPlayer = -1;
         
@@ -124,7 +130,7 @@ public class Evaluator {
 //            System.out.println("i = " + i);
             if(findBeaterLineFor(i, true) == -1){
                 minNotBeatableLineByPlayer = i;
-                System.out.println("Not beatable line = " + i);
+//                System.out.println("Not beatable line = " + i);
                 break;
             }
         }
@@ -134,35 +140,38 @@ public class Evaluator {
 //            System.out.println("i = " + i);
             if(findBeaterLineFor(i, false) == -1){
                 minNotBeatableLineByOpponent = i;
-                System.out.println("Not beatable line opponent = " + i);
+//                System.out.println("Not beatable line opponent = " + i);
                 break;
             }
         }
         
         //TODO: Improve, rethink!
         if(minNotBeatableLineByOpponent != -1 && minNotBeatableLineByPlayer != -1){
+            //both players have a line, thopponent cannot beat (that is the common case)
             //the found best lines are parallel
             float pPlayer = calcPointsWithLine(minNotBeatableLineByPlayer, pV, true);
-            System.out.println("pPlayer = " + pPlayer);
+//            System.out.println("pPlayer = " + pPlayer);
             
             float pOpponent = calcPointsWithLine(minNotBeatableLineByOpponent, pH, false);
-            System.out.println("pOpponent = " + pOpponent);
-            return pPlayer > pOpponent;
+//            System.out.println("pOpponent = " + pOpponent);
+            return factor * (pPlayer - pOpponent);
         }else if(minNotBeatableLineByPlayer != -1){
+            //only the current player has a line the opponent cannot beat
             float pPlayer = calcPointsWithLine(minNotBeatableLineByPlayer, pV, true);
-            System.out.println("pPlayer = " + pPlayer);
-            return pPlayer>=0;
+//            System.out.println("pPlayer = " + pPlayer);
+            return factor * pPlayer;
             
         }else if(minNotBeatableLineByOpponent != -1){
+            //only the other player has a line the opponent cannot beat
             float pOpponent = calcPointsWithLine(minNotBeatableLineByOpponent, pH, false);
-            System.out.println("pOpponent = " + pOpponent);
-            return pOpponent>=0;
+//            System.out.println("pOpponent = " + pOpponent);
+            return factor * -1 * pOpponent;
             
         }else{
             
             //should not be possible
             assert(false);
-            return false;
+            return 0;
         }
     }
     
