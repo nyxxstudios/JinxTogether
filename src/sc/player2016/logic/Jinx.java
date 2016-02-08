@@ -61,6 +61,12 @@ public class Jinx {
                     //update board (add move (and sometimes connection or start/end field) by opponent)
                     board.updateBoard(board.getField(gameState.getLastMove().getX(), gameState.getLastMove().getY()), false);
                     
+                    
+                    System.out.println("evaluationOfConflictzone 1 = " +
+                        Evaluator.evaluateCurrentConflictzone(board.startOfJinxGraph, board.endOfJinxGraph,
+                        board.startOfOpponentGraph, board.endOfOpponentGraph, board.isJinxTurn==Jinx.jinxIsPlayingVertical));
+            
+                    
                     Field nextMove = calcBestMoveIterative(board.getField(gameState.getLastMove().getX(), gameState.getLastMove().getY()),lastMoveByJinx, TIMELIMIT);
                     selection = new Move(nextMove.getX(), nextMove.getY()); 
                     

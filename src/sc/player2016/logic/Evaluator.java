@@ -38,7 +38,7 @@ public class Evaluator {
             
             
 //            result += evaluateCurrentConflictzone(startOfJinxGraph, endOfJinxGraph, 
-//                    startOfOpponentGraph, endOfOpponentGraph, isVertsMove);
+//                    startOfOpponentGraph, endOfOpponentGraph, isVertsMove)?0.1:-0.1;
 //            
             
             /*v1,h1,v2,h2 the higher the better for horizontal player:
@@ -63,7 +63,7 @@ public class Evaluator {
 
     private static Field pV;//vertical (playing) point of conflict zone (translated to the down-left corner equivalent)
     private static Field pH;//horizontal (playing) point of conflict zone (translated to the down-left corner equivalent)
-    static float evaluateCurrentConflictzone(Field startOfJinxGraph, Field endOfJinxGraph,
+    static boolean evaluateCurrentConflictzone(Field startOfJinxGraph, Field endOfJinxGraph,
             Field startOfOpponentGraph, Field endOfOpponentGraph, boolean isVertsMove){
         //find conflictzone and set the 2 relevant points
         //(reduce every conflictzone to a conflict in the down-left corner:
@@ -74,6 +74,18 @@ public class Evaluator {
         
         calcPVAndPH(startOfJinxGraph, endOfJinxGraph, 
                 startOfOpponentGraph, endOfOpponentGraph);
+        
+        //IT IS ALWAYS VERTS MOVE, MAKES THINGS A LOT EASIER
+        if(!isVertsMove){
+            Field f = pV;
+            pV = new Field(pH.getY(), pH.getX());
+            pH = new Field(f.getY(), f.getX());
+        }
+        //now it is verts move ;)
+        
+        System.out.println("pV = " + pV + " and pH = " + pH);
+        
+        
         
 //        System.out.println("Vert is faster: " +
 //                verticalLineIsFaster(0.5f, new Field(5,8), 
@@ -104,21 +116,54 @@ public class Evaluator {
         
         */
         
-        int maxLineOfOpponent = -1;
-        int help;
-        //1 if isJinxMove, else -1
-        int factor = (isVertsMove==Jinx.jinxIsPlayingVertical?1:-1);
+        int minNotBeatableLineByOpponent = -1;
+        int minNotBeatableLineByPlayer = -1;
+        
+        //find minNotBeatableLineByPlayer (is always playing vertical, look above)
         for(int i=0; i<4; i++){
 //            System.out.println("i = " + i);
-            help = findBeaterLineFor(i, isVertsMove);
-            if(help != -1){
-                maxLineOfOpponent = Math.max(maxLineOfOpponent, help);
-            }else{
-                return factor * (4-i);
+            if(findBeaterLineFor(i, true) == -1){
+                minNotBeatableLineByPlayer = i;
+                System.out.println("Not beatable line = " + i);
+                break;
             }
         }
         
-        return -1 * factor * (4-maxLineOfOpponent);
+        //find minNotBeatableLineByOpponent (is playing horizontal)
+        for(int i=0; i<4; i++){
+//            System.out.println("i = " + i);
+            if(findBeaterLineFor(i, false) == -1){
+                minNotBeatableLineByOpponent = i;
+                System.out.println("Not beatable line opponent = " + i);
+                break;
+            }
+        }
+        
+        //TODO: Improve, rethink!
+        if(minNotBeatableLineByOpponent != -1 && minNotBeatableLineByPlayer != -1){
+            //the found best lines are parallel
+            float pPlayer = calcPointsWithLine(minNotBeatableLineByPlayer, pV, true);
+            System.out.println("pPlayer = " + pPlayer);
+            
+            float pOpponent = calcPointsWithLine(minNotBeatableLineByOpponent, pH, false);
+            System.out.println("pOpponent = " + pOpponent);
+            return pPlayer > pOpponent;
+        }else if(minNotBeatableLineByPlayer != -1){
+            float pPlayer = calcPointsWithLine(minNotBeatableLineByPlayer, pV, true);
+            System.out.println("pPlayer = " + pPlayer);
+            return pPlayer>=0;
+            
+        }else if(minNotBeatableLineByOpponent != -1){
+            float pOpponent = calcPointsWithLine(minNotBeatableLineByOpponent, pH, false);
+            System.out.println("pOpponent = " + pOpponent);
+            return pOpponent>=0;
+            
+        }else{
+            
+            //should not be possible
+            assert(false);
+            return false;
+        }
     }
     
     private static void calcPVAndPH(Field startOfJinxGraph, Field endOfJinxGraph,
@@ -141,7 +186,7 @@ public class Evaluator {
             minSquaredDistance = getSquaredDistance(startOfJinxGraph, startOfOpponentGraph);
             pV = startOfJinxGraph;
             pH = startOfOpponentGraph;
-            System.out.println("vert up-left");
+//            System.out.println("vert up-left");
             
 //  ---------------- TODO! ---------------------
 //            if(startOfJinxGraph == endOfJinxGraph || startOfOpponentGraph == endOfOpponentGraph)
@@ -152,7 +197,7 @@ public class Evaluator {
                 minSquaredDistance = help;
                 pV = new Field(23 - startOfJinxGraph.getX(),    startOfJinxGraph.getY());
                 pH = new Field(23 - endOfOpponentGraph.getX(),  endOfOpponentGraph.getY());
-                System.out.println("vert up-right");
+//                System.out.println("vert up-right");
             }
 
             //check endJinx to startOpponent (conflictzone: down-left)
@@ -161,7 +206,7 @@ public class Evaluator {
                 minSquaredDistance = help;
                 pV = new Field(endOfJinxGraph.getX(),       23 - endOfJinxGraph.getY());
                 pH = new Field(startOfOpponentGraph.getX(), 23 - startOfOpponentGraph.getY());
-                System.out.println("vert down-left");
+//                System.out.println("vert down-left");
             }
 
             //check endJinx to endOpponent (conflictzone: down-right)
@@ -170,7 +215,7 @@ public class Evaluator {
                 minSquaredDistance = help;
                 pV = new Field(23 - endOfJinxGraph.getX(),     23 - endOfJinxGraph.getY());
                 pH = new Field(23 - endOfOpponentGraph.getX(), 23 - endOfOpponentGraph.getY());
-                System.out.println("vert down-right");
+//                System.out.println("vert down-right");
             }
             
             
@@ -179,7 +224,7 @@ public class Evaluator {
             minSquaredDistance = getSquaredDistance(startOfJinxGraph, startOfOpponentGraph);
             pV = startOfOpponentGraph;
             pH = startOfJinxGraph;
-            System.out.println("hor up-left");
+//            System.out.println("hor up-left");
         
             //check startJinx to endOpponent (conflictzone: down-left)
             help = getSquaredDistance(startOfJinxGraph, endOfOpponentGraph);
@@ -187,7 +232,7 @@ public class Evaluator {
                 minSquaredDistance = help;
                 pV = new Field(endOfOpponentGraph.getX(), 23 - endOfOpponentGraph.getY());
                 pH = new Field(startOfJinxGraph.getX(),   23 - startOfJinxGraph.getY());
-                System.out.println("hor down-left");
+//                System.out.println("hor down-left");
                 
             }
 
@@ -197,7 +242,7 @@ public class Evaluator {
                 minSquaredDistance = help;
                 pV = new Field(23 - startOfOpponentGraph.getX(), startOfOpponentGraph.getY());
                 pH = new Field(23 - endOfJinxGraph.getX(),       endOfJinxGraph.getY());
-                System.out.println("hor up-right");
+//                System.out.println("hor up-right");
             }
 
             //check endJinx to endOpponent (conflictzone: down-right)
@@ -206,11 +251,11 @@ public class Evaluator {
                 minSquaredDistance = help;
                 pV = new Field(23 - endOfOpponentGraph.getX(),  23 - endOfOpponentGraph.getY());
                 pH = new Field(23 - endOfJinxGraph.getX(),      23 - endOfJinxGraph.getY());
-                System.out.println("hor down-right");
+//                System.out.println("hor down-right");
             }
         }
 
-        System.out.println("pV: " + pV + " pH: " + pH);
+//        System.out.println("pV: " + pV + " pH: " + pH);
         
     }
     
@@ -221,7 +266,7 @@ public class Evaluator {
         -2, -0.5f, 0.5f, 2
     };
     
-    private static int findBeaterLineFor(int i, boolean isVLineAndTurn){
+    private static int findBeaterLineFor(int i, boolean isVertLine){
         /*
         assert(i>=0 && i<4)
         There are four possible lines for each player:
@@ -240,36 +285,36 @@ public class Evaluator {
         
         //TODO: parallel lines
         
-        if(isVLineAndTurn){
-//            System.out.println("opponent 0");
-            if(-1 == verticalLineIsFaster(mV[i], pV, mH[0], pH, isVLineAndTurn))
+        if(isVertLine){
+//            System.out.println("player tries against 0");
+            if(-1 == verticalLineIsFaster(mV[i], pV, mH[0], pH))
                 return 0;
-//            System.out.println("opponent 1");
-            if(-1 == verticalLineIsFaster(mV[i], pV, mH[1], pH, isVLineAndTurn))
+//            System.out.println("player tries against 1");
+            if(-1 == verticalLineIsFaster(mV[i], pV, mH[1], pH))
                 return 1;
-//            System.out.println("opponent 2");
-            if(-1 == verticalLineIsFaster(mV[i], pV, mH[2], pH, isVLineAndTurn))
+//            System.out.println("player tries against 2");
+            if(-1 == verticalLineIsFaster(mV[i], pV, mH[2], pH))
                 return 2;
-//            System.out.println("opponent 3");
-            if(-1 == verticalLineIsFaster(mV[i], pV, mH[3], pH, isVLineAndTurn))
+//            System.out.println("player tries against 3");
+            if(-1 == verticalLineIsFaster(mV[i], pV, mH[3], pH))
                 return 3;
-//            System.out.println("opponent beaten");
-            return -1; // vI beats every opponent line
+//            System.out.println("player beats opponent");
+            return -1; // vI beats every 'h-line'
         }else{
-//            System.out.println("opponent 0 + m = " + mH[i]);
-            if(1 == verticalLineIsFaster(mV[0], pV, mH[i], pH, isVLineAndTurn))
+//            System.out.println("opponent tries against 0 + m = " + mH[i]);
+            if(1 == verticalLineIsFaster(mV[0], pV, mH[i], pH))
                 return 0;
-//            System.out.println("opponent 1");
-            if(1 == verticalLineIsFaster(mV[1], pV, mH[i], pH, isVLineAndTurn))
+//            System.out.println("opponent tries against 1");
+            if(1 == verticalLineIsFaster(mV[1], pV, mH[i], pH))
                 return 1;
-//            System.out.println("opponent 2");
-            if(1 == verticalLineIsFaster(mV[2], pV, mH[i], pH, isVLineAndTurn))
+//            System.out.println("opponent tries against 2");
+            if(1 == verticalLineIsFaster(mV[2], pV, mH[i], pH))
                 return 2;
-//            System.out.println("opponent 3");
-            if(1 == verticalLineIsFaster(mV[3], pV, mH[i], pH, isVLineAndTurn))
+//            System.out.println("opponent tries against 3");
+            if(1 == verticalLineIsFaster(mV[3], pV, mH[i], pH))
                 return 3;
-//            System.out.println("opponent beaten");
-            return -1; // hI beats every opponent line
+//            System.out.println("opponent beats player");
+            return -1; // hI beats every 'v-line'
         }
     }
     
@@ -303,7 +348,7 @@ public class Evaluator {
       If h and v are parallel, then 
     */
     private static int verticalLineIsFaster(float mV, Field fOfVertLine,
-            float mH, Field fOfHorLine, boolean isVertTurn){
+            float mH, Field fOfHorLine){
         float bV = fOfVertLine.getY() - mV * fOfVertLine.getX();
         float bH = fOfHorLine.getY() - mH * fOfHorLine.getX();
         
@@ -338,6 +383,17 @@ public class Evaluator {
         float sX = (bH - bV) / (mV - mH);
         float sY = mV * (bH - bV)/(mV - mH) + bV;
         
+        //check if S is in the 'relevant zone':
+        //1. it has to be on the board (sX > 0 && sY > 0; equal to 0 means that
+        //it cannot be a intersection point, because it is only playable for one)
+        //2. it has to be 'below' fOfVertLine and fOfHorLine, not on the irrelevant
+        //part of the board 'behind' the conflictzone, e. g. in (23|23).
+        //So sY < fOfVertLine.getY() && sX < fOfHorLine.getX()
+        if(sX <= 0 || sY <= 0 || sY >= fOfVertLine.getY() || sX >= fOfHorLine.getX()){
+//            System.out.println("intersection point is not in relevant area);
+            return 0;//equivalent to parallelism for further calculations
+        }
+        
 //        System.out.println("Intersection point: (" + sX + "|" + sY + ")");
         
         //calc distances
@@ -354,17 +410,20 @@ public class Evaluator {
         int neededMovesHor = (int) Math.ceil(Math.min(deltaXHor, deltaYHor));
 //        System.out.println("needed moves hor: " + neededMovesHor);
         
-        if(isVertTurn){
-            if(neededMovesVert <= neededMovesHor)
-                return 1;
-            else
-                return -1;
+        //It is always verts turn (look at beginning of evaluateCurrentConflictzone)
+        if(neededMovesVert <= neededMovesHor)
+            return 1;
+        else
+            return -1;
+    }
+    
+    private static float calcPointsWithLine(int index, Field f, boolean isVert){
+        if(isVert){
+            //calc intersection point with x axis -> 'Nullstelle'
+            return (mV[index] * f.getX() - f.getY()) / mV[index];
         }else{
-            if(neededMovesHor <= neededMovesVert)
-                return -1;
-            else
-                return 1;
-            
+            //calc intersection point with y axis -> 'Y-Achsenabschnitt'
+            return f.getY() - mH[index] * f.getX();
         }
     }
     
