@@ -12,7 +12,11 @@ public class Board {
 
     int pointsByJinx = -1;
     int pointsByOpponent = -1;
-
+    
+    //vertical player starts the game
+    //set in updateMove and undoMove, read in evaluateCurrentConfliczone
+    boolean isJinxTurn = Jinx.jinxIsPlayingVertical;
+    
     //necessary for pointCalculation
     ArrayList<Field> fieldsByJinx = new ArrayList<>();
     ArrayList<Field> fieldsByOpponent = new ArrayList<>();
@@ -42,7 +46,7 @@ public class Board {
     public void updateBoard(Field move, boolean isJinxMove){
             FieldColor fieldColor;
             boolean isPlayingVertical;
-
+            
             if(isJinxMove){
                     fieldColor = FieldColor.JINX;
                     isPlayingVertical = Jinx.jinxIsPlayingVertical;
@@ -128,6 +132,8 @@ public class Board {
                     }
             }//end check for new connections---------------------
 
+            isJinxTurn = !isJinxTurn;
+            
     }
 
     public void undoMove(Field move, boolean isJinxMove){
@@ -160,10 +166,14 @@ public class Board {
                      pointsByOpponent = calcPointsByPlayer(false);
                 }
             }
+            
+            isJinxTurn = !isJinxTurn;
     }
 
     public float evaluateBoardPosition(){
-        return Evaluator.evaluateBoardPosition(pointsByJinx, pointsByOpponent);
+        return Evaluator.evaluateBoardPosition(startOfJinxGraph, endOfJinxGraph, 
+                startOfOpponentGraph, endOfOpponentGraph, isJinxTurn, 
+                pointsByJinx, pointsByOpponent);
     }
     
     //important part of the Jinx AI. Returns all 'good' moves

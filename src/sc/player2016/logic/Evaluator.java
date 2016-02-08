@@ -10,31 +10,36 @@ package sc.player2016.logic;
  * @author Jonas
  */
 public class Evaluator {
-    public static float evaluateBoardPosition(int pointsByJinx, int pointsByOpponent){
+    public static float evaluateBoardPosition(Field startOfJinxGraph, Field endOfJinxGraph,
+            Field startOfOpponentGraph, Field endOfOpponentGraph, boolean isVertsMove, int pointsByJinx, int pointsByOpponent){
             //Evaluates the current state of the board.
             //The higher the result is, the better is the situation for jinx
             float result;
 
 
             //First (since 0.01) evaluation method: points by jinx/points by opponent
-//            if(pointsByOpponent != 0){
-//                    result = pointsByJinx/(float)(pointsByOpponent);
-////                        result = -pointsByOpponent;
-//            }else{
-//                    result = pointsByJinx*1.1f;
-//            }
-            
-            //so 16:8 is worse than 17:9 
-            if(pointsByJinx > pointsByOpponent){
-                result = 1.1f * pointsByJinx - pointsByOpponent;
-                
-            }else if(pointsByJinx == pointsByOpponent){
-                result = pointsByJinx - pointsByOpponent;
-                
+            if(pointsByOpponent != 0){
+                    result = pointsByJinx/(float)(pointsByOpponent);
+//                        result = -pointsByOpponent;
             }else{
-                result = pointsByJinx - 1.1f * pointsByOpponent;
+                    result = pointsByJinx*1.1f;
             }
             
+            //so 16:8 is worse than 17:9 
+//            if(pointsByJinx > pointsByOpponent){
+//                result = 1.1f * pointsByJinx - pointsByOpponent;
+//                
+//            }else if(pointsByJinx == pointsByOpponent){
+//                result = pointsByJinx - pointsByOpponent;
+//                
+//            }else{
+//                result = pointsByJinx - 1.1f * pointsByOpponent;
+//            }
+            
+            
+//            result += evaluateCurrentConflictzone(startOfJinxGraph, endOfJinxGraph, 
+//                    startOfOpponentGraph, endOfOpponentGraph, isVertsMove);
+//            
             
             /*v1,h1,v2,h2 the higher the better for horizontal player:
              => the smaller h the better
@@ -56,17 +61,68 @@ public class Evaluator {
             return result;
     }
 
+    private static Field pV;//vertical (playing) point of conflict zone (translated to the down-left corner equivalent)
+    private static Field pH;//horizontal (playing) point of conflict zone (translated to the down-left corner equivalent)
     static float evaluateCurrentConflictzone(Field startOfJinxGraph, Field endOfJinxGraph,
-            Field startOfOpponentGraph, Field endOfOpponentGraph){
+            Field startOfOpponentGraph, Field endOfOpponentGraph, boolean isVertsMove){
         //find conflictzone and set the 2 relevant points
         //(reduce every conflictzone to a conflict in the down-left corner:
         //vertical player tries to reach the bottom and horizontal tries 
         //to reach the left border. This is necessary to use the 'hand-calculated'
         //formulas for the coordinate system; down-left corner of the board is 
         //defined as coordinate origin (0|0))
-        Field pV;//vertical (playing) point of conflict zone (translated to the down-left corner equivalent)
-        Field pH;//horizontal (playing) point of conflict zone (translated to the down-left corner equivalent)
         
+        calcPVAndPH(startOfJinxGraph, endOfJinxGraph, 
+                startOfOpponentGraph, endOfOpponentGraph);
+        
+//        System.out.println("Vert is faster: " +
+//                verticalLineIsFaster(0.5f, new Field(5,8), 
+//                        2f, new Field(7,2), true));
+        /*
+        There are four possible lines for each player:
+        v0(x) = -0.5 * x + 0.5 * xV + yV
+        v1(x) = -2   * x + 2   * xV + yV
+        v2(x) = 2    * x - 2   * xV + yV
+        v3(x) = 0.5  * x - 0.5 * xV + yV
+        for the vertical player (v0 would be best, v3 worst) and
+        
+        h0(x) = -2   * x + 2   * xH + yH
+        h1(x) = -0.5 * x + 0.5 * xH + yH
+        h2(x) =  0.5 * x - 0.5 * xH + yH
+        h3(x) =  2   * x - 2   * xH + yH
+        for the horizontal player (h0 would be best, h3 worst).
+        
+        This function now figures out which is the best line for the
+        CURRENT player that the other cannot beat (be faster at the intersection point
+        with any of his lines lines). If there is no such line it figures out 
+        wich is the best line for the other player. 
+        There can be 3 different results:
+        1) Current player has a line that beats all opponent lines
+        2) Other player has a line that beats all lines of current player
+        3) Both players have a line that cannot be beaten by the opponent
+           -> parallel
+        
+        */
+        
+        int maxLineOfOpponent = -1;
+        int help;
+        //1 if isJinxMove, else -1
+        int factor = (isVertsMove==Jinx.jinxIsPlayingVertical?1:-1);
+        for(int i=0; i<4; i++){
+//            System.out.println("i = " + i);
+            help = findBeaterLineFor(i, isVertsMove);
+            if(help != -1){
+                maxLineOfOpponent = Math.max(maxLineOfOpponent, help);
+            }else{
+                return factor * (4-i);
+            }
+        }
+        
+        return -1 * factor * (4-maxLineOfOpponent);
+    }
+    
+    private static void calcPVAndPH(Field startOfJinxGraph, Field endOfJinxGraph,
+            Field startOfOpponentGraph, Field endOfOpponentGraph){
         //helper vars for setting pV and pH
         float minSquaredDistance;
         float help;
@@ -156,7 +212,160 @@ public class Evaluator {
 
         System.out.println("pV: " + pV + " pH: " + pH);
         
-        return 0;
+    }
+    
+    private static final float[] mV = {
+        -0.5f, -2, 2, 0.5f
+    };
+    private static final float[] mH = {
+        -2, -0.5f, 0.5f, 2
+    };
+    
+    private static int findBeaterLineFor(int i, boolean isVLineAndTurn){
+        /*
+        assert(i>=0 && i<4)
+        There are four possible lines for each player:
+        v0(x) = -0.5 * x + 0.5 * xV + yV
+        v1(x) = -2   * x + 2   * xV + yV
+        v2(x) = 2    * x - 2   * xV + yV
+        v3(x) = 0.5  * x - 0.5 * xV + yV
+        for the vertical player (v0 would be best, v3 worst) and
+        
+        h0(x) = -2   * x + 2   * xH + yH
+        h1(x) = -0.5 * x + 0.5 * xH + yH
+        h2(x) =  0.5 * x - 0.5 * xH + yH
+        h3(x) =  2   * x - 2   * xH + yH
+        for the horizontal player (h0 would be best, h3 worst).
+        */
+        
+        //TODO: parallel lines
+        
+        if(isVLineAndTurn){
+//            System.out.println("opponent 0");
+            if(-1 == verticalLineIsFaster(mV[i], pV, mH[0], pH, isVLineAndTurn))
+                return 0;
+//            System.out.println("opponent 1");
+            if(-1 == verticalLineIsFaster(mV[i], pV, mH[1], pH, isVLineAndTurn))
+                return 1;
+//            System.out.println("opponent 2");
+            if(-1 == verticalLineIsFaster(mV[i], pV, mH[2], pH, isVLineAndTurn))
+                return 2;
+//            System.out.println("opponent 3");
+            if(-1 == verticalLineIsFaster(mV[i], pV, mH[3], pH, isVLineAndTurn))
+                return 3;
+//            System.out.println("opponent beaten");
+            return -1; // vI beats every opponent line
+        }else{
+//            System.out.println("opponent 0 + m = " + mH[i]);
+            if(1 == verticalLineIsFaster(mV[0], pV, mH[i], pH, isVLineAndTurn))
+                return 0;
+//            System.out.println("opponent 1");
+            if(1 == verticalLineIsFaster(mV[1], pV, mH[i], pH, isVLineAndTurn))
+                return 1;
+//            System.out.println("opponent 2");
+            if(1 == verticalLineIsFaster(mV[2], pV, mH[i], pH, isVLineAndTurn))
+                return 2;
+//            System.out.println("opponent 3");
+            if(1 == verticalLineIsFaster(mV[3], pV, mH[i], pH, isVLineAndTurn))
+                return 3;
+//            System.out.println("opponent beaten");
+            return -1; // hI beats every opponent line
+        }
+    }
+    
+    /*figures out, which line would win (be faster at the intersection
+      of both). both lines are defined with m and b this way:
+      v(x) = mV * x + bV
+      h(x) = mH * x + bH
+      
+      It is the turn of one line, so this line is 2^2 + 1^1 = 5 ahead
+      (in squared distance; everything is measured in squared distance to
+      avoid calculation which the square root which is performance intensive)
+      
+      If you do the math you get the following formulas for the intersection point
+      (sX | sY):
+      sX = (bH - bV) / (mV - mH)  
+      sY = mV * (bH - bV)/(mV - mH) + bV
+            for mV - mH != 0; otherwise the lines are parallel
+    
+      This method first has to check if one line intersects the (already existing)
+      other graph (it is assumed that the vert graph goes staright upwards from
+      fOfVertLine and the hor graph goes straight rightwards from fOfHorLine).
+      If so, the other player's line is obviously faster (if both, return 0)
+      Formular to check:
+      if(h(xV) = mH * xV + bH >= yV) -> hor line intersects vert graph
+      if((yH - bV) / mV       >= xH) -> vert line intersects hor graph
+    
+      If no graph is intersected, then the intersection point of v (vert line)
+      and h (hor line) is calculated, the distances to the end points are compared 
+      and the faster player is returned (1 -> vert is faster; 
+      false -> hor is faster)
+      If h and v are parallel, then 
+    */
+    private static int verticalLineIsFaster(float mV, Field fOfVertLine,
+            float mH, Field fOfHorLine, boolean isVertTurn){
+        float bV = fOfVertLine.getY() - mV * fOfVertLine.getX();
+        float bH = fOfHorLine.getY() - mH * fOfHorLine.getX();
+        
+        //check for intersection of graph
+        boolean vertLineIntersectsHorGraph = false;
+        boolean horLineIntersectsVertGraph = false;
+        if((fOfHorLine.getY() - bV) / mV >= fOfHorLine.getX()){
+//            System.out.println("vert line intersects hor graph");
+            vertLineIntersectsHorGraph = true;
+        }
+        if(mH * fOfVertLine.getX() + bH >= fOfVertLine.getY()){
+//            System.out.println("hor line intersects vert graph");
+            horLineIntersectsVertGraph = true;
+        }
+        if(horLineIntersectsVertGraph && vertLineIntersectsHorGraph)
+            return 0;
+        
+        else if(horLineIntersectsVertGraph){
+            return 1;
+            
+        }else if(vertLineIntersectsHorGraph){
+            return -1;
+        }
+        
+        //check for parallelism
+        if(mV == mH){
+//            System.out.println("lines are parallel");
+           return 0; 
+        }
+        
+        //calc intersection point
+        float sX = (bH - bV) / (mV - mH);
+        float sY = mV * (bH - bV)/(mV - mH) + bV;
+        
+//        System.out.println("Intersection point: (" + sX + "|" + sY + ")");
+        
+        //calc distances
+//        float distFVertToS = getSquaredDistance(fOfVertLine, sX, sY);
+//        float distFHorToS  = getSquaredDistance(fOfHorLine, sX, sY);
+        
+        
+        float deltaXVert = Math.abs(sX - fOfVertLine.getX());
+        float deltaYVert = Math.abs(sY - fOfVertLine.getY());
+        int neededMovesVert = (int) Math.ceil(Math.min(deltaXVert, deltaYVert));
+//        System.out.println("needed moves vert: " + neededMovesVert);
+        float deltaXHor = Math.abs(sX - fOfHorLine.getX());
+        float deltaYHor = Math.abs(sY - fOfHorLine.getY());
+        int neededMovesHor = (int) Math.ceil(Math.min(deltaXHor, deltaYHor));
+//        System.out.println("needed moves hor: " + neededMovesHor);
+        
+        if(isVertTurn){
+            if(neededMovesVert <= neededMovesHor)
+                return 1;
+            else
+                return -1;
+        }else{
+            if(neededMovesHor <= neededMovesVert)
+                return -1;
+            else
+                return 1;
+            
+        }
     }
     
     private static float getSquaredDistance(Field a, Field b){
@@ -164,4 +373,13 @@ public class Evaluator {
                 Math.pow(Math.abs(b.getY() - a.getY()), 2));
     }
     
+    private static float getSquaredDistance(Field a, float bX, float bY){
+        return (float) (Math.pow(Math.abs(bX - a.getX()), 2) + 
+                Math.pow(Math.abs(bY - a.getY()), 2));
+    }
+    
+    private static float getDistance(Field a, float bX, float bY){
+        return (float) Math.sqrt(Math.pow(Math.abs(bX - a.getX()), 2) + 
+                Math.pow(Math.abs(bY - a.getY()), 2));
+    }
 }

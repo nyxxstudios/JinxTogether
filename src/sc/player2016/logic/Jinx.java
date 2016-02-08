@@ -78,8 +78,9 @@ public class Jinx {
             
             
             if(gameState.getTurn() > 1){
-                Evaluator.evaluateCurrentConflictzone(board.startOfJinxGraph, board.endOfJinxGraph,
-                        board.startOfOpponentGraph, board.endOfOpponentGraph);
+                System.out.println("evaluationOfConflictzone = " +
+                        Evaluator.evaluateCurrentConflictzone(board.startOfJinxGraph, board.endOfJinxGraph,
+                        board.startOfOpponentGraph, board.endOfOpponentGraph, board.isJinxTurn==Jinx.jinxIsPlayingVertical));
             }
             
             lastMoveByJinx = board.getField(selection.getX(), selection.getY());
