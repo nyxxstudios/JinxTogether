@@ -22,18 +22,27 @@ public class Field{
 	
 	public void removeConnectionTo(Field f){
 		boolean isRemoved = false;
-		for(Field field : connections){
-			if(field.equals(f)){
-				connections.remove(field);
-				isRemoved = true;
-				break;
-			}
-		}
-		if(!isRemoved){
-			System.out.println("No connection from (" + x + ", " + y + ") to (" + f.getX() + ", " + f.getY() + ") " + " exists!");
-		}
+                connections.remove(f);
+//		for(Field field : connections){
+//			if(field.equals(f)){
+//				connections.remove(field);
+//				isRemoved = true;
+//				break;
+//			}
+//		}
+//		if(!isRemoved){
+//			System.out.println("No connection from (" + x + ", " + y + ") to (" + f.getX() + ", " + f.getY() + ") " + " exists!");
+//		}
 	}
 	
+        public void removeAllConnections(){
+            //also remove connections TO this field
+            for(Field c : connections){
+                c.removeConnectionTo(this);
+            }
+            connections.clear();
+        }
+                
 	public ArrayList<Field> getConnections(){
 		return connections;
 	}
