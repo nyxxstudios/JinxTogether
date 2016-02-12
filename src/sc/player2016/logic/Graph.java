@@ -14,7 +14,10 @@ import java.util.ArrayList;
 public class Graph {
     private ArrayList<Field> fields = new ArrayList<>();
     private Field minXField;
-
+    private Field maxXField;
+    private Field minYField;
+    private Field maxYField;
+    
     public Field getMinXField() {
         return minXField;
     }
@@ -30,9 +33,7 @@ public class Graph {
     public Field getMaxYField() {
         return maxYField;
     }
-    private Field maxXField;
-    private Field minYField;
-    private Field maxYField;
+    
     
     public Graph(Field firstField){
         fields.add(firstField);
@@ -52,24 +53,19 @@ public class Graph {
     }
     
     //make sure that fields.size() > 2 ! Otherwise delete whole graph!
+    //returns new graphs (this stays a graph, just reduced)
     public ArrayList<Graph> removeField(Field f){
-        if(fields.size() < 2)
-            System.out.println("ERROR less than 2");
+        ArrayList<Graph> result = new ArrayList<>();
+        
         ArrayList<Field> connections = new ArrayList<>();
         for(Field field : f.getConnections()){
             connections.add(field);
         }
         fields.remove(f);
         f.removeAllConnections();
-//        System.out.println("Remove " + f + " with connections to " + connections);
-        
-        ArrayList<Graph> result = new ArrayList<>();
         if(connections.size() == 1){//check if split of this graph (into 2 or
                                     //more) is not necessary
-            //copy this into result.get(0)
-            result.add(this.duplicate());
             
-//            System.out.println("1 connection, result = " + result);
             if(minXField == f || maxXField == f || minYField == f || maxYField == f){
                 recalculateMinAndMaxFields();
             }
@@ -83,9 +79,15 @@ public class Graph {
                     result.add(splitFromThis(connections.get(i)));
                 }
             }
-//            System.out.println(">1 connection, result = " + result);
-            //this (origin graph) CANNOT be used any more, because minX, ... are wrong.
-            //It should not be relevant any more, just work with the result
+            //this (origin graph) CANNOT be used any more at the moment, 
+            //because minX, ... are wrong. So set it to result.get(0); also
+            //reset minX, ...
+            minXField = result.get(0).fields.get(0);
+            maxXField = result.get(0).fields.get(0);
+            minYField = result.get(0).fields.get(0);
+            maxYField = result.get(0).fields.get(0);
+            this.addGraph(result.get(0));
+            result.remove(0);
         }
         return result;
     }
@@ -100,14 +102,6 @@ public class Graph {
         }else{
             return maxXField.getX() - minXField.getX();
         }
-    }
-    
-    private Graph duplicate(){
-        Graph result = new Graph(fields.get(0));
-        for(int i=1; i<fields.size(); i++){
-                result.addField(fields.get(i));
-        }
-        return result;
     }
     
     private void recalculateMinAndMaxFields(){
@@ -125,32 +119,6 @@ public class Graph {
         }
     }
     
-//    private ArrayList<Field> alreadyVisited = new ArrayList<>();
-//    private boolean fieldsAreConnected;
-//    private Field findOutIfItIsConnected;
-//    private boolean areConnected(Field f1, Field f2){
-//        alreadyVisited.clear();
-//        fieldsAreConnected = false;
-//        findOutIfItIsConnected = f2;
-//        visitConnectedFields(f1);
-//        return fieldsAreConnected;
-//    }
-//    private void visitConnectedFields(Field f){
-//        if(!fieldsAreConnected){//if field was already found, stop any further search
-//            ArrayList<Field> connections = f.getConnections();
-//            for(Field c : connections){
-//                if(!alreadyVisited.contains(c)){
-//                    if(c == findOutIfItIsConnected){
-//                        fieldsAreConnected = true;
-//                    }else{
-//                        alreadyVisited.add(c);
-//                        visitConnectedFields(c);
-//                    }
-//                }
-//            }
-//        }
-//    }
-    
     //splits all fields, that are still (after removing one field;
     //this method is called from removeField) in the same graph like 
     //startFieldOfPartGraph from the origin graph (this). 
@@ -158,11 +126,11 @@ public class Graph {
     private Graph splitFromThis(Field startFieldOfPartGraph){
         result = new Graph(startFieldOfPartGraph);
         addAllFieldsInSameGraph(startFieldOfPartGraph);
+        fields.remove(startFieldOfPartGraph);
         return result;
     }
     private void addAllFieldsInSameGraph(Field f){
-        ArrayList<Field> connections = f.getConnections();
-        for(Field c : connections){
+        for(Field c : f.getConnections()){
             if(!result.containsField(c)){
                 result.addField(c);
                 fields.remove(c);//delete from this
@@ -172,7 +140,6 @@ public class Graph {
     }
 
     public void addGraph(Graph g) {
-        if(g==this)System.out.println("Equal");
         for(Field f : g.fields){
             addField(f);
         }
@@ -184,9 +151,11 @@ public class Graph {
         for(int i=0; i<fields.size()-1; i++){
             result += fields.get(i) + ", ";
         }
-        result += fields.get(fields.size()-1) + "]";
+        if(fields.size() > 0)
+            result += fields.get(fields.size()-1) + "]";
+        else
+            result += "]";
         return result;
     }
-    
-    
+
 }

@@ -67,23 +67,13 @@ public class Jinx {
             
                     
                     Field nextMove = calcBestMoveIterative(board.getField(gameState.getLastMove().getX(), gameState.getLastMove().getY()),lastMoveByJinx, TIMELIMIT);
-                    selection = new Move(nextMove.getX(), nextMove.getY()); 
-                    
-                    
+                    selection = new Move(nextMove.getX(), nextMove.getY());
                 }
             }
             
             //update board (add move (and sometimes connection) by jinx)
             board.updateBoard(board.getField(selection.getX(), selection.getY()), true);
-            if(jinxIsPlayingVertical){
-                System.out.println("startJinx = " + board.graphsByJinx.get(0).getMinYField() + "  endJinx = " + board.graphsByJinx.get(0).getMaxYField());	
-                System.out.println("startOpponent = " + board.graphsByOpponent.get(0).getMinXField() + "  endOpponent = " + board.graphsByOpponent.get(0).getMaxXField());
-            }else{
-                System.out.println("startJinx = " + board.graphsByJinx.get(0).getMinXField() + "  endJinx = " + board.graphsByJinx.get(0).getMaxXField());	
-                System.out.println("startOpponent = " + board.graphsByOpponent.get(0).getMinYField() + "  endOpponent = " + board.graphsByOpponent.get(0).getMaxYField());
-            }     
-            System.out.println("pointsJinx = " + board.graphsByJinx.get(0).getPoints(Jinx.jinxIsPlayingVertical)
-                    + "  pointsOpponent = " + board.graphsByOpponent.get(0).getPoints(!Jinx.jinxIsPlayingVertical));
+                 
             
             System.out.println(board.getNumberOfSetFields() + " stones set");
             System.out.println("graphsByJinx = " + board.graphsByJinx + 
@@ -92,6 +82,16 @@ public class Jinx {
             if(gameState.getTurn() > 1){
                 System.out.println("evaluationOfConflictzone = " +
                         board.evaluateBoardPosition());
+                if(jinxIsPlayingVertical){
+                    System.out.println("startJinx = " + board.graphsByJinx.get(0).getMinYField() + "  endJinx = " + board.graphsByJinx.get(0).getMaxYField());	
+                    System.out.println("startOpponent = " + board.graphsByOpponent.get(0).getMinXField() + "  endOpponent = " + board.graphsByOpponent.get(0).getMaxXField());
+                }else{
+                    System.out.println("startJinx = " + board.graphsByJinx.get(0).getMinXField() + "  endJinx = " + board.graphsByJinx.get(0).getMaxXField());	
+                    System.out.println("startOpponent = " + board.graphsByOpponent.get(0).getMinYField() + "  endOpponent = " + board.graphsByOpponent.get(0).getMaxYField());
+                }
+                System.out.println("pointsJinx = " + board.graphsByJinx.get(0).getPoints(Jinx.jinxIsPlayingVertical)
+                    + "  pointsOpponent = " + board.graphsByOpponent.get(0).getPoints(!Jinx.jinxIsPlayingVertical));
+            
             }
             
             lastMoveByJinx = board.getField(selection.getX(), selection.getY());

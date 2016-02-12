@@ -17,28 +17,10 @@ public class Board {
     //set in updateMove and undoMove, read in evaluateCurrentConfliczone
     boolean isJinxTurn = Jinx.jinxIsPlayingVertical;
     
-    //necessary for pointCalculation
-//    ArrayList<Field> fieldsByJinx = new ArrayList<>();
-//    ArrayList<Field> fieldsByOpponent = new ArrayList<>();
-    
     //graphs by jinx sorted by points (first graph has most)
     ArrayList<Graph> graphsByJinx = new ArrayList<>();
     //graphs by opponent sorted by points (first graph has most)
     ArrayList<Graph> graphsByOpponent = new ArrayList<>();
-    
-    //save start and end field of the 'max graphs' (graphs that are worth 
-    //the most points) of jinx and the opponent. Set in updateMove/undoMove.
-    //Read in evaluateBoard
-//    Field startOfJinxGraph;
-//    Field endOfJinxGraph;
-//    Field startOfOpponentGraph;
-//    Field endOfOpponentGraph;
-
-    //needed in pointsWithField as temporary storage. If points have changed,
-    //then also change the start/end fields of the graph (above) with the help of
-    //these variables
-//    private Field startJinxField, endJinxField, startOpponentField, endOpponentField;
-
 
     public Board(GameState gameStateAtBeginning){
             initFields(gameStateAtBeginning);
@@ -148,10 +130,11 @@ public class Board {
                 for(int i=0; i<graphsByCurrentPlayer.size(); i++){
                      if(graphsByCurrentPlayer.get(i).containsField(move)){
                          
-                         ArrayList<Graph> splittedGraphs = graphsByCurrentPlayer.get(i).removeField(move);
+                         ArrayList<Graph> newGraphs = graphsByCurrentPlayer.get(i).removeField(move);
+                         
 //                         System.out.println("splitted Graphs = " + splittedGraphs);
-                         graphsByCurrentPlayer.remove(i);
-                         for(Graph g : splittedGraphs){
+                         moveGraphUpToRightPosition(i, isJinxMove);
+                         for(Graph g : newGraphs){
                              graphsByCurrentPlayer.add(g);
                              moveGraphDownToRightPosition(graphsByCurrentPlayer.size()-1, isJinxMove);
                          }
@@ -433,6 +416,37 @@ public class Board {
             }
             graphsByOpponent.add(0, g);
             return 0;
+        }
+//        return index;
+    }
+    
+    private void moveGraphUpToRightPosition(int index, boolean isJinx){
+        
+        //move graph upwards (bigger indices, element 0 is worth most points)
+        //in graphsByCurrentPlayer until it is at the right position
+        if(isJinx){
+            Graph g = graphsByJinx.get(index);
+            graphsByJinx.remove(index);
+            int points = g.getPoints(Jinx.jinxIsPlayingVertical);
+            for(int i=index; i<graphsByJinx.size(); i++){
+                if(graphsByJinx.get(i).getPoints(Jinx.jinxIsPlayingVertical) <= points){
+                    graphsByJinx.add(i, g);
+                    return;
+                }
+            }
+            graphsByJinx.add(graphsByJinx.size(), g);
+            
+        }else{//is opponent
+            Graph g = graphsByOpponent.get(index);
+            graphsByOpponent.remove(index);
+            int points = g.getPoints(!Jinx.jinxIsPlayingVertical);
+            for(int i=index; i<graphsByOpponent.size(); i++){
+                if(graphsByOpponent.get(i).getPoints(!Jinx.jinxIsPlayingVertical) <= points){
+                    graphsByOpponent.add(i, g);
+                    return;
+                }
+            }
+            graphsByOpponent.add(graphsByOpponent.size(), g);
         }
     }
     
