@@ -5,26 +5,28 @@
  */
 package sc.player2016.logic;
 
+import java.util.ArrayList;
+
 /**
  *
  * @author Jonas
  */
 public class Evaluator {
-    public static float evaluateBoardPosition(Field startOfJinxGraph, Field endOfJinxGraph,
-            Field startOfOpponentGraph, Field endOfOpponentGraph, boolean isVertsMove, int pointsByJinx, int pointsByOpponent){
+    public static float evaluateBoardPosition(ArrayList<Graph> graphsByVert,
+            ArrayList<Graph> graphsByHor, boolean isVertsMove, int pointsByJinx, int pointsByOpponent){
             //Evaluates the current state of the board.
             //The higher the result is, the better is the situation for jinx
-            float result;
+            float result = 0;
 
 
             //First (since 0.01) evaluation method: points by jinx/points by opponent
-            if(pointsByOpponent != 0){
-                    result = pointsByJinx/(float)(pointsByOpponent);
-//                        result = -pointsByOpponent;
-            }else{
-                    result = pointsByJinx*1.1f;
-            }
-            
+//            if(pointsByOpponent != 0){
+//                    result = pointsByJinx/(float)(pointsByOpponent);
+////                        result = -pointsByOpponent;
+//            }else{
+//                    result = pointsByJinx*1.1f;
+//            }
+              result = pointsByJinx - pointsByOpponent;
 //            result += 0.1 * evaluateCurrentConflictzone(startOfJinxGraph, endOfJinxGraph, 
 //                    startOfOpponentGraph, endOfOpponentGraph, isVertsMove);
 //            if (evaluateCurrentConflictzone(startOfJinxGraph, endOfJinxGraph, 
@@ -43,8 +45,7 @@ public class Evaluator {
 //            }
             
             
-//            result += evaluateCurrentConflictzone(startOfJinxGraph, endOfJinxGraph, 
-//                    startOfOpponentGraph, endOfOpponentGraph, isVertsMove)?0.1:-0.1;
+            result += 0.1 * evaluateCurrentConflictzone(graphsByVert, graphsByHor, isVertsMove);
 //            
             
             /*v1,h1,v2,h2 the higher the better for horizontal player:
@@ -69,17 +70,24 @@ public class Evaluator {
 
     private static Field pV;//vertical (playing) point of conflict zone (translated to the down-left corner equivalent)
     private static Field pH;//horizontal (playing) point of conflict zone (translated to the down-left corner equivalent)
-    static float evaluateCurrentConflictzone(Field startOfJinxGraph, Field endOfJinxGraph,
-            Field startOfOpponentGraph, Field endOfOpponentGraph, boolean isVertsMove){
+    static float evaluateCurrentConflictzone(ArrayList<Graph> graphsByVert,
+            ArrayList<Graph> graphsByHor, boolean isVertsMove){
         //find conflictzone and set the 2 relevant points
         //(reduce every conflictzone to a conflict in the down-left corner:
         //vertical player tries to reach the bottom and horizontal tries 
         //to reach the left border. This is necessary to use the 'hand-calculated'
         //formulas for the coordinate system; down-left corner of the board is 
         //defined as coordinate origin (0|0))
-        
-        calcPVAndPH(startOfJinxGraph, endOfJinxGraph, 
-                startOfOpponentGraph, endOfOpponentGraph);
+        if(Jinx.jinxIsPlayingVertical){
+            if(graphsByVert.get(0).hasJustOneField())
+                return Integer.MIN_VALUE;
+        }else{
+            if(graphsByHor.get(0).hasJustOneField())
+                return Integer.MIN_VALUE;
+        }
+        calcPVAndPHFromAllGraphs(graphsByVert, graphsByHor);
+ 
+//        System.out.println("pV = " + pV + " pH = " + pH);
         
         //IT IS ALWAYS VERTS MOVE, THAT MAKES THINGS A LOT EASIER
         if(!isVertsMove){
@@ -268,6 +276,90 @@ public class Evaluator {
         
     }
     
+    private enum Corner{
+        MIN_MIN, MIN_MAX, MAX_MIN, MAX_MAX
+    }
+    
+    private static void calcPVAndPHFromAllGraphs(ArrayList<Graph> graphsByVert, 
+            ArrayList<Graph> graphsByHor){
+        //check all graphs that have at least 2 fields (= more than 0 points)
+        float minSquaredDistance = Integer.MAX_VALUE;
+        Field pVert = null;//to make netbeans happy
+        Field pHor = null;//to make netbeans happy
+        float help;
+        Corner cornerOfMinDistancePoints = null;
+        
+        //set to default values (that result in an evaluation of currentConflictzone = 0),
+        //if one player has no graph, that is worth more than 0 points
+        pV = new Field(1,0);
+        pH = new Field(0,1);
+        
+        //calc min distance fields (=Conflictzone); just search in start/end fields of graphs
+        for(Graph gV : graphsByVert){
+            if(gV.hasJustOneField()) break;//graphs are sorted, so all graphs with
+                                            //points > 0 (2 or more fields) are already searched
+            for(Graph gH : graphsByHor){
+                if(gH.hasJustOneField()) break;//graphs are sorted, so all graphs with
+                                                //points > 0 (2 or more fields) are already searched
+                
+                if(gV.getMinYField().getY() > 1 && gH.getMinXField().getX() > 1){
+                    help = getSquaredDistance(gV.getMinYField(), gH.getMinXField());
+                    if(help < minSquaredDistance){
+                        minSquaredDistance = help;
+                        cornerOfMinDistancePoints = Corner.MIN_MIN;
+                        pVert = gV.getMinYField();
+                        pHor = gH.getMinXField();
+                    }
+                }
+                if(gV.getMinYField().getY() > 1 && gH.getMaxXField().getX() < 22){
+                    help = getSquaredDistance(gV.getMinYField(), gH.getMaxXField());
+                    if(help < minSquaredDistance){
+                        minSquaredDistance = help;
+                        cornerOfMinDistancePoints = Corner.MIN_MAX;
+                        pVert = gV.getMinYField();
+                        pHor = gH.getMaxXField();
+                    }
+                }
+                if(gV.getMaxYField().getY() < 22 && gH.getMinXField().getX() > 1){
+                    help = getSquaredDistance(gV.getMaxYField(), gH.getMinXField());
+                    if(help < minSquaredDistance){
+                        minSquaredDistance = help;
+                        cornerOfMinDistancePoints = Corner.MAX_MIN;
+                        pVert = gV.getMaxYField();
+                        pHor = gH.getMinXField();
+                    }
+                }
+                if(gV.getMaxYField().getY() < 22 && gH.getMaxXField().getX() < 22){
+                    help = getSquaredDistance(gV.getMaxYField(), gH.getMaxXField());
+                    if(help < minSquaredDistance){
+                        minSquaredDistance = help;
+                        cornerOfMinDistancePoints = Corner.MAX_MAX;
+                        pVert = gV.getMaxYField();
+                        pHor = gH.getMaxXField();
+                    }
+                }
+            }
+        }
+        
+        //translate in down-left equivalent (also change coordinate system:
+        //current (0|23) becomes (0|0))
+        if(cornerOfMinDistancePoints == Corner.MIN_MIN){//up-left corner
+            pV = pVert;
+            pH = pHor;
+        }else if(cornerOfMinDistancePoints == Corner.MIN_MAX){//up-right
+            pV = new Field(23 - pVert.getX(), pVert.getY());
+            pH = new Field(23 - pHor.getX(), pHor.getY());
+            
+        }else if(cornerOfMinDistancePoints == Corner.MAX_MIN){//down-left
+            pV = new Field(pVert.getX(), 23 - pVert.getY());
+            pH = new Field(pHor.getX(), 23 - pHor.getY());
+            
+        }else if(cornerOfMinDistancePoints == Corner.MAX_MAX){//down-right
+            pV = new Field(23 - pVert.getX(), 23 - pVert.getY());
+            pH = new Field(23 - pHor.getX(), 23 - pHor.getY());
+        }
+    }
+            
     private static final float[] mV = {
         -0.5f, -2, 2, 0.5f
     };
@@ -341,7 +433,7 @@ public class Evaluator {
       sX = (bH - bV) / (mV - mH)  
       sY = mV * (bH - bV)/(mV - mH) + bV
             for mV - mH != 0; otherwise the lines are parallel
-    
+      
       This method first has to check if one line intersects the (already existing)
       other graph (it is assumed that the vert graph goes staright upwards from
       fOfVertLine and the hor graph goes straight rightwards from fOfHorLine).

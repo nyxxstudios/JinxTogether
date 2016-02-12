@@ -80,12 +80,21 @@ public class Jinx {
                     "\ngraphsByOpponent = " + board.graphsByOpponent);
             
             if(gameState.getTurn() > 1){
-                System.out.println("evaluationOfConflictzone = " +
+                System.out.println("evaluationOfBoardPosition = " +
                         board.evaluateBoardPosition());
+                    
                 if(jinxIsPlayingVertical){
+                    System.out.println("evaluationOfConflictzone = " +
+                            Evaluator.evaluateCurrentConflictzone(
+                                    board.graphsByJinx,
+                                    board.graphsByOpponent, board.isJinxTurn));
                     System.out.println("startJinx = " + board.graphsByJinx.get(0).getMinYField() + "  endJinx = " + board.graphsByJinx.get(0).getMaxYField());	
                     System.out.println("startOpponent = " + board.graphsByOpponent.get(0).getMinXField() + "  endOpponent = " + board.graphsByOpponent.get(0).getMaxXField());
                 }else{
+                    System.out.println("evaluationOfConflictzone = " +
+                            Evaluator.evaluateCurrentConflictzone(
+                                    board.graphsByOpponent,
+                                    board.graphsByJinx, board.isJinxTurn));
                     System.out.println("startJinx = " + board.graphsByJinx.get(0).getMinXField() + "  endJinx = " + board.graphsByJinx.get(0).getMaxXField());	
                     System.out.println("startOpponent = " + board.graphsByOpponent.get(0).getMinYField() + "  endOpponent = " + board.graphsByOpponent.get(0).getMaxYField());
                 }
@@ -109,8 +118,8 @@ public class Jinx {
                 
                 Field result = null;
                 numberOfCutoffs = 0;
-		ArrayList<Field> possibleMoves = board.preselectMoves(lastMove, secondLastMove);
-		
+		ArrayList<Field> preselectedMoves = board.preselectMoves(lastMove, jinxIsPlayingVertical);
+                
                 ArrayList<Field> sortedMoves = new ArrayList<Field>();
                 ArrayList<Float> valuesOfSortedMoves = new ArrayList<>();
                 
@@ -134,7 +143,7 @@ public class Jinx {
                     System.out.println("Depth " + depth);
                     
                     int i=0;
-                    for(Field move : possibleMoves){
+                    for(Field move : preselectedMoves){
                         i++;
 			board.updateBoard(move, true);
 			float value = min(depth-1, maxValue, Float.MAX_VALUE, move, lastMove, depth);
@@ -156,16 +165,16 @@ public class Jinx {
 //                             break;
 //                        }
                         if(timeIsOver){
-                            System.out.println("\nDepth = " + depth + "  " + i + "/" + possibleMoves.size() + " moves");
+                            System.out.println("\nDepth = " + depth + "  " + i + "/" + preselectedMoves.size() + " moves");
                             break;
                         }
                     }
                     //possibleMoves are now resorted for faster search with depth++
                     //This sort hopefully leads to much more cutoffs in the alpha-beta-search
-                    possibleMoves = cloneList(sortedMoves);
+                    preselectedMoves = cloneList(sortedMoves);
                     
                     
-                    System.out.println("Possible moves: " + possibleMoves);
+                    System.out.println("Possible moves: " + preselectedMoves);
                     
                     System.out.println("Best move: " + result + " with " + maxValue);
                     System.out.println("--------end of depth = " + depth + " ------");
@@ -206,9 +215,9 @@ public class Jinx {
 		}else if(depth == depthAtStart-1){
 			System.out.print(".");
 		}
-		ArrayList<Field> possibleMoves = board.preselectMoves(lastMove, secondLastMove);
+		ArrayList<Field> preselectedMoves = board.preselectMoves(lastMove, jinxIsPlayingVertical);
 		float maxValue = alpha; //minimum that jinx can reach (found in previous nodes)
-		for(Field move : possibleMoves){
+		for(Field move : preselectedMoves){
 			board.updateBoard(move, true);
 			float value = min(depth-1, maxValue, beta, move, lastMove, depthAtStart);
 			board.undoMove(move, true);
@@ -247,7 +256,7 @@ public class Jinx {
 		}else if(depth == depthAtStart-1){
 //			System.out.print(".");
 		}
-		ArrayList<Field> possibleMoves = board.preselectMoves(lastMove, secondLastMove);
+		ArrayList<Field> possibleMoves = board.preselectMoves(lastMove, !jinxIsPlayingVertical);
 		float minValue = beta; //maximum that beta can reach (found in previous nodes)
                 Field minMove = null;
 		for(Field move : possibleMoves){

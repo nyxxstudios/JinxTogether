@@ -34,7 +34,6 @@ public class Graph {
         return maxYField;
     }
     
-    
     public Graph(Field firstField){
         fields.add(firstField);
         minXField = firstField;
@@ -94,6 +93,10 @@ public class Graph {
     
     public boolean containsField(Field f){
         return fields.contains(f);
+    }
+    
+    public boolean hasJustOneField(){
+        return fields.size() == 1;
     }
     
     public int getPoints(boolean isVertical){
