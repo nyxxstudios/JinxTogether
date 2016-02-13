@@ -283,7 +283,7 @@ public class Evaluator {
     private static void calcPVAndPHFromAllGraphs(ArrayList<Graph> graphsByVert, 
             ArrayList<Graph> graphsByHor){
         //check all graphs that have at least 2 fields (= more than 0 points)
-        float minSquaredDistance = Integer.MAX_VALUE;
+        float minSquaredDistance = Float.MAX_VALUE;
         Field pVert = null;//to make netbeans happy
         Field pHor = null;//to make netbeans happy
         float help;

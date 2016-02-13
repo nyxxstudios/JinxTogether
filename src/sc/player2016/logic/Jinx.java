@@ -94,7 +94,7 @@ public class Jinx {
                     System.out.println("evaluationOfConflictzone = " +
                             Evaluator.evaluateCurrentConflictzone(
                                     board.graphsByOpponent,
-                                    board.graphsByJinx, board.isJinxTurn));
+                                    board.graphsByJinx, !board.isJinxTurn));
                     System.out.println("startJinx = " + board.graphsByJinx.get(0).getMinXField() + "  endJinx = " + board.graphsByJinx.get(0).getMaxXField());	
                     System.out.println("startOpponent = " + board.graphsByOpponent.get(0).getMinYField() + "  endOpponent = " + board.graphsByOpponent.get(0).getMaxYField());
                 }

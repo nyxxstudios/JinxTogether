@@ -160,7 +160,7 @@ public class Board {
                     graphsByOpponent.get(0).getPoints(!Jinx.jinxIsPlayingVertical));
         }else{
             return Evaluator.evaluateBoardPosition(graphsByOpponent, graphsByJinx, 
-                    isJinxTurn, graphsByJinx.get(0).getPoints(Jinx.jinxIsPlayingVertical),
+                    !isJinxTurn, graphsByJinx.get(0).getPoints(Jinx.jinxIsPlayingVertical),
                     graphsByOpponent.get(0).getPoints(!Jinx.jinxIsPlayingVertical));
         }
     }
@@ -315,7 +315,7 @@ public class Board {
 
             //add (maximum) 4 fields for each graph (possible connections to other graphs)
             for(Graph g : graphsByCurrentPlayer){
-                if(g.hasJustOneField())break;
+//                if(g.hasJustOneField())break;
                 //add two fields to result for minYField
                 if(g.getMinYField().getY() - 2 >= 0){
                     if(g.getMinYField().getX() - 1 > 0){
@@ -445,7 +445,7 @@ public class Board {
 
             //add (maximum) 4 fields for each graph (possible connections to other graphs)
             for(Graph g : graphsByCurrentPlayer){
-                if(g.hasJustOneField())break;
+//                if(g.hasJustOneField())break;
                 //add two fields to result for minXField
                 if(g.getMinXField().getX() - 2 >= 0){
                     if(g.getMinXField().getY() - 1 > 0){
