@@ -9,9 +9,6 @@ import sc.plugin2016.Move;
 
 public class Board {
     Field[][] fields = new Field[24][24];
-//
-//    int pointsByJinx = -1;
-//    int pointsByOpponent = -1;
     
     //vertical player starts the game
     //set in updateMove and undoMove, read in evaluateCurrentConfliczone
@@ -74,25 +71,19 @@ public class Board {
 
                             //if this connection is the first one
                             if(!isFirstConnectionAlreadyAdded){
-//                                            System.out.println("first conn: " + getField(pX, pY));
-//                                            System.out.println("actual field = " + getField(x,y));
-//                                            System.out.println("graphsByJinx = " + graphsByJinx);
                                 for(int i=0; i<graphsByCurrentPlayer.size(); i++){
                                     if(graphsByCurrentPlayer.get(i).containsField(getField(pX, pY))){
                                         graphsByCurrentPlayer.get(i).addField(move);
                                         indexOfMainGraph = moveGraphDownToRightPosition(i, isJinxMove);
-
                                         break;
                                     }
                                 }
                                 isFirstConnectionAlreadyAdded = true;
-                            }else{
-//                                            System.out.println("second conn: " + getField(pX, pY));
-//                                            System.out.println("actual field = " + getField(x,y));
-//                                            System.out.println("graphsByJinx = " + graphsByJinx);
+                                
+                            }else{//second or higher connection in this updateBoard call
                                  for(int i=0; i<graphsByCurrentPlayer.size(); i++){
                                      if(graphsByCurrentPlayer.get(i).containsField(getField(pX, pY))){
-                                        if(i != indexOfMainGraph){//if both connectionfields were in the same graph before
+                                        if(i != indexOfMainGraph){//don't add again if last connection was to the same graph
                                             graphsByCurrentPlayer.get(indexOfMainGraph)
                                                     .addGraph(graphsByCurrentPlayer.get(i));
                                             graphsByCurrentPlayer.remove(i);
@@ -106,15 +97,13 @@ public class Board {
                         }
                     }
                 }
-            }//end check for new connections---------------------
+            }//end check for new connections
 
             if(!isFirstConnectionAlreadyAdded){//no connections added at all
                 graphsByCurrentPlayer.add(new Graph(move));
             }
-//            System.out.println("graphsByJinx: " + graphsByJinx);
             
             isJinxTurn = !isJinxTurn;
-            
     }
 
     public void undoMove(Field move, boolean isJinxMove){
@@ -132,13 +121,11 @@ public class Board {
                          
                          ArrayList<Graph> newGraphs = graphsByCurrentPlayer.get(i).removeField(move);
                          
-//                         System.out.println("splitted Graphs = " + splittedGraphs);
                          moveGraphUpToRightPosition(i, isJinxMove);
                          for(Graph g : newGraphs){
                              graphsByCurrentPlayer.add(g);
                              moveGraphDownToRightPosition(graphsByCurrentPlayer.size()-1, isJinxMove);
                          }
-//                         System.out.println("graphsByCurrentPlayer = " + graphsByCurrentPlayer);
                          break;
                      }    
                 }
@@ -150,6 +137,7 @@ public class Board {
                     }
                 }
             }
+            
             isJinxTurn = !isJinxTurn;
     }
 

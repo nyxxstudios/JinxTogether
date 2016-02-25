@@ -6,8 +6,7 @@ public class Field{
 	//green is default in order to increase speed in initBoard()
 	private Jinx.FieldColor fieldColor = Jinx.FieldColor.GREEN;
 	
-	private int x;
-	private int y;
+	private int x, y;
 	
 	private ArrayList<Field> connections = new ArrayList<Field>();
 	

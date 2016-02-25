@@ -13,23 +13,17 @@ import java.util.ArrayList;
  */
 public class Graph {
     private ArrayList<Field> fields = new ArrayList<>();
-    private Field minXField;
-    private Field maxXField;
-    private Field minYField;
-    private Field maxYField;
+    private Field minXField, maxXField, minYField, maxYField;
     
     public Field getMinXField() {
         return minXField;
     }
-
     public Field getMaxXField() {
         return maxXField;
     }
-
     public Field getMinYField() {
         return minYField;
     }
-
     public Field getMaxYField() {
         return maxYField;
     }
