@@ -103,6 +103,7 @@ public class Jinx {
             
             }
             
+            System.out.println("CONFLICTZONEVALUE: " + board.evaluateConflict());
             lastMoveByJinx = board.getField(selection.getX(), selection.getY());
             return selection;
 	}

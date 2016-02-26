@@ -153,6 +153,14 @@ public class Board {
         }
     }
     
+    public float evaluateConflict(){
+        if(Jinx.jinxIsPlayingVertical){
+            return Evaluator.evaluateConflictzones(graphsByJinx, graphsByOpponent, isJinxTurn);
+        }else{
+            return Evaluator.evaluateConflictzones(graphsByOpponent, graphsByJinx, !isJinxTurn);
+        }
+    }
+    
     //important part of the Jinx AI. Returns all 'good' moves
     //that can be done (returning all possible moves would be too much
     //to calculate in a senseful depth)
