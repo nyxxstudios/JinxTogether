@@ -41,14 +41,16 @@ public class Jinx {
               
             if(gameState.getTurn() == 0){
                 jinxIsPlayingVertical = true;
-
+                Evaluator.setFactor();
+                
                 //initialize board
                 board = new Board(gameState);
                 selection = getFirstMove();
             }else{
                 if(gameState.getTurn() == 1){
                     jinxIsPlayingVertical = false;
-
+                    Evaluator.setFactor();
+                    
                     //initialize board
                     board = new Board(gameState);
                     
@@ -70,6 +72,8 @@ public class Jinx {
                     selection = new Move(nextMove.getX(), nextMove.getY());
                 }
             }
+            
+            System.out.println("CONFLICTZONEVALUE: " + board.evaluateConflict());
             
             //update board (add move (and sometimes connection) by jinx)
             board.updateBoard(board.getField(selection.getX(), selection.getY()), true);
@@ -141,7 +145,7 @@ public class Jinx {
                     //would not have played them after the search results of depth-1)
                     maxValue = Integer.MIN_VALUE;
                     
-                    System.out.println("Depth " + depth);
+//                    System.out.println("Depth " + depth);
                     
                     int i=0;
                     for(Field move : preselectedMoves){
@@ -152,7 +156,7 @@ public class Jinx {
 			if(value > maxValue){
                             maxValue = value;
                             result = move;
-                            System.out.println("----------1. Move " + move + " with max = " + value + " ---------");
+//                            System.out.println("----------1. Move " + move + " with max = " + value + " ---------");
 			}
                         //Insert the inspected/evaluated move at the right position
                         //(the smaller the value the higher the list index =>
@@ -175,16 +179,16 @@ public class Jinx {
                     preselectedMoves = cloneList(sortedMoves);
                     
                     
-                    System.out.println("Possible moves: " + preselectedMoves);
-                    
-                    System.out.println("Best move: " + result + " with " + maxValue);
-                    System.out.println("--------end of depth = " + depth + " ------");
-                    System.out.println();
+//                    System.out.println("Possible moves: " + preselectedMoves);
+//                    
+//                    System.out.println("Best move: " + result + " with " + maxValue);
+//                    System.out.println("--------end of depth = " + depth + " ------");
+//                    System.out.println();
                     
                     
                 }//end of 'increase depth by 1 loop'    
-                System.out.println("Zeit: " + (System.currentTimeMillis() - startTime)/(float)1000);
-                System.out.println("Number of cutoffs = " + numberOfCutoffs);
+//                System.out.println("Zeit: " + (System.currentTimeMillis() - startTime)/(float)1000);
+//                System.out.println("Number of cutoffs = " + numberOfCutoffs);
                 //timeIsOver => return best move found
                 return result;
 	}

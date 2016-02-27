@@ -5,7 +5,6 @@
  */
 package sc.player2016.logic;
 
-import com.sun.xml.internal.bind.v2.runtime.reflect.opt.Const;
 import java.util.ArrayList;
 
 /**
@@ -15,7 +14,13 @@ import java.util.ArrayList;
 public class Evaluator {
     private static final float TURN_ADVANTAGE = 2;
     private static final float MAX_VALUE = 20;
-    
+    private static float factor; 
+
+    //is called once at beginning in Jinx.findMove()
+    public static void setFactor() {
+        factor = Jinx.jinxIsPlayingVertical?1:-1;
+    }
+
     public static float evaluateBoardPosition(ArrayList<Graph> graphsByVert,
             ArrayList<Graph> graphsByHor, boolean isVertsMove, int pointsByJinx, int pointsByOpponent){
             //Evaluates the current state of the board.
@@ -50,7 +55,12 @@ public class Evaluator {
             
             
 //            result += 0.1 * evaluateCurrentConflictzone(graphsByVert, graphsByHor, isVertsMove);
-              result += evaluateConflictzones(graphsByVert, graphsByHor, isVertsMove);
+              if(isVertsMove){
+                result += evaluateConflictzonesHorsMove(graphsByVert, graphsByHor);
+                
+              }else{
+                  result += evaluateConflictzonesVertsMove(graphsByVert, graphsByHor);
+              }
 //            
             
             /*v1,h1,v2,h2 the higher the better for horizontal player:
@@ -73,8 +83,9 @@ public class Evaluator {
             return result;
     }
 
-    public static float evaluateConflictzones(ArrayList<Graph> graphsByVert,
-            ArrayList<Graph> graphsByHor, boolean isVertsMove){
+    public static float evaluateConflictzonesVertsMove(ArrayList<Graph> graphsByVert,
+            ArrayList<Graph> graphsByHor){
+        //It is verts move.
         //iterate through all graphs (with at least 2 points) by vert.
         //Each graph has a start point pS and an end point pE.
         //For each point a conflictzone is evaluated (Lotgeradenprinzip). 
@@ -88,22 +99,19 @@ public class Evaluator {
         for(Graph g : graphsByVert){
             if(g.hasJustOneField()) break;//just graphs with at least 2 fields are relevant
             
-            help = evaluateVertGraph(g, graphsByHor, isVertsMove);
-            System.out.println("Graph " + g + "\nconflict: " + help);
+            help = evaluateVertGraph(g, graphsByHor);
+//            System.out.println("Graph " + g + "\nconflict: " + help);
             minConflictzone = Math.max(minConflictzone, help);
         }
-        return minConflictzone;
+        return factor * minConflictzone;
     }
     
-    
-    
     private static float evaluateVertGraph(Graph vertGraph, 
-            ArrayList<Graph> graphsByHor, boolean isVertsMove){
+            ArrayList<Graph> graphsByHor){
         float minYConflict = MAX_VALUE;
         float maxYConflict = MAX_VALUE;
         Field fVMin = vertGraph.getMinYField();
         Field fVMax = vertGraph.getMaxYField();
-        float turn_advantage_vert = isVertsMove?TURN_ADVANTAGE:-TURN_ADVANTAGE;
         
         float help;
         Field fHMin;
@@ -118,18 +126,18 @@ public class Evaluator {
             if(fHMax.getX() <= fVMin.getX()){//g left from vertGraphMinY
                 if(fHMax.getY() <= fVMin.getY()){//g up&left from vertGraphMinY
                     help = (fVMin.getX() - fHMax.getX()) - 
-                            (fVMin.getY() - fHMax.getY()) + turn_advantage_vert;
+                            (fVMin.getY() - fHMax.getY());// + TURN_ADVANTAGE
                     minYConflict = Math.min(minYConflict, help);
                 }
             }else if(fHMin.getX() >= fVMin.getX()){//g right from vertGraphMinY
                 if(fHMin.getY() <= fVMin.getY()){//g up&right from vertGraphMinY
                     help = (fHMin.getX() - fVMin.getX()) - 
-                            (fVMin.getY() - fHMin.getY()) + turn_advantage_vert;
+                            (fVMin.getY() - fHMin.getY());// + TURN_ADVANTAGE
                     minYConflict = Math.min(minYConflict, help);
                 }
             }else{//g middle from vertGraphMinY
-                //TODO: not completely sure in the middle
-                if(fHMin.getY() <= fVMin.getY() || fHMax.getY() <= fVMin.getY()){//g up&middle from vertGraphMinY
+                //TODO: Too much cases detected at the moment
+                if(g.getMinYField().getY() <= fVMin.getY()){//g up&middle from vertGraphMinY (not always!)
                     minYConflict = -MAX_VALUE;
                 }
             }
@@ -138,18 +146,18 @@ public class Evaluator {
             if(fHMax.getX() <= fVMax.getX()){//g left from vertGraphMaxY
                 if(fHMax.getY() >= fVMax.getY()){//g down&left from vertGraphMaxY
                     help = (fVMax.getX() - fHMax.getX()) - 
-                            (fHMax.getY() - fVMax.getY()) + turn_advantage_vert;
+                            (fHMax.getY() - fVMax.getY());// + TURN_ADVANTAGE
                     maxYConflict = Math.min(maxYConflict, help);
                 }
             }else if(fHMin.getX() >= fVMax.getX()){//g right from vertGraphMaxY
                 if(fHMin.getY() >= fVMax.getY()){//g down&right from vertGraphMaxY
                     help = (fHMin.getX() - fVMax.getX()) - 
-                            (fHMin.getY() - fVMax.getY()) + turn_advantage_vert;
+                            (fHMin.getY() - fVMax.getY());// + TURN_ADVANTAGE
                     maxYConflict = Math.min(maxYConflict, help);
                 }
             }else{//g middle from vertGraphMinY
-                //TODO: not completely sure in the middle
-                if(fHMin.getY() >= fVMax.getY() || fHMax.getY() >= fVMax.getY()){//g down&middle from vertGraphMaxY
+                //TODO: Too much cases detected at the moment
+                if(g.getMaxYField().getY() >= fVMax.getY()){//g down&middle from vertGraphMaxY
                     maxYConflict = -MAX_VALUE;
                 }
             }
@@ -157,6 +165,87 @@ public class Evaluator {
         return Math.min(minYConflict, maxYConflict);
     }
     
+    public static float evaluateConflictzonesHorsMove(ArrayList<Graph> graphsByVert,
+            ArrayList<Graph> graphsByHor){
+        //It is hors move.
+        //iterate through all graphs (with at least 2 points) by hor.
+        //Each graph has a start point pS and an end point pE.
+        //For each point a conflictzone is evaluated (Lotgeradenprinzip). 
+        //This function returns the greatest minimum (lower conflictzone, 
+        //either with pS or pE) of a graph by hor.
+        
+        //Greatest minimum of a graph
+        float minConflictzone = -MAX_VALUE;
+        float help;
+        
+        for(Graph g : graphsByHor){
+            if(g.hasJustOneField()) break;//just graphs with at least 2 fields are relevant
+            
+            help = evaluateHorGraph(g, graphsByVert);
+//            System.out.println("Graph " + g + "\nconflict: " + help);
+            minConflictzone = Math.max(minConflictzone, help);
+        }
+        return -1 * factor * minConflictzone;
+    }
+
+    private static float evaluateHorGraph(Graph horGraph, 
+            ArrayList<Graph> graphsByVert){
+        float minXConflict = MAX_VALUE;
+        float maxXConflict = MAX_VALUE;
+        Field fHMin = horGraph.getMinXField();
+        Field fHMax = horGraph.getMaxXField();
+        
+        float help;
+        Field fVMin;
+        Field fVMax;
+        
+        for(Graph g : graphsByVert){
+            if(g.hasJustOneField()) break;//just graphs with at least 2 fields are relevant
+            fVMax = g.getMaxYField();
+            fVMin = g.getMinYField();
+            
+            //fHMin
+            if(fVMax.getY() <= fHMin.getY()){//g up from horGraphMinX
+                if(fVMax.getX() <= fHMin.getX()){//g up&left from horGraphMinX
+                    help = (fHMin.getY() - fVMax.getY()) -
+                            (fHMin.getX() - fVMax.getX());// + TURN_ADVANTAGE
+                    minXConflict = Math.min(minXConflict, help);
+                }
+            }else if(fVMin.getY() >= fHMin.getY()){//g down from horGraphMinX
+                if(fVMin.getX() <= fHMin.getX()){//g down&left from horGraphMinX
+                    help = (fVMin.getY() - fHMin.getY()) - 
+                            (fHMin.getX() - fVMin.getX());// + TURN_ADVANTAGE
+                    minXConflict = Math.min(minXConflict, help);
+                }
+            }else{//g middle from horGraphMinX
+                //TODO: Too much cases detected at the moment
+                if(g.getMinXField().getX() <= fHMin.getX()){// g left&middle from horGraphMinX
+                    minXConflict = -MAX_VALUE;
+                }
+            }
+            
+            //fHMax
+            if(fVMax.getY() <= fHMax.getY()){//g up from horGraphMaxX
+                if(fVMax.getX() >= fHMax.getX()){//g up&right from horGraphMaxX
+                    help = (fHMax.getY() - fVMax.getY()) -
+                            (fVMax.getX() - fHMax.getX());// + TURN_ADVANTAGE
+                    maxXConflict = Math.min(maxXConflict, help);
+                }
+            }else if(fVMin.getY() >= fHMax.getY()){//g down from horGraphMaxX
+                if(fVMin.getX() >= fHMax.getX()){//g down&right from horGraphMaxX
+                    help = (fVMin.getY() - fHMax.getY()) - 
+                            (fVMin.getX() - fHMax.getX());// + TURN_ADVANTAGE
+                    maxXConflict = Math.min(maxXConflict, help);
+                }
+            }else{//g middle from horGraphMaxX
+                //TODO: Too much cases detected at the moment
+                if(g.getMaxXField().getX() >= fHMax.getX()){// g right&middle from horGraphMaxX
+                    maxXConflict = -MAX_VALUE;
+                }
+            }
+        }
+        return Math.min(minXConflict, maxXConflict);
+    }
     
     
     
