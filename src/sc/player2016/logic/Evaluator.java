@@ -6,6 +6,7 @@
 package sc.player2016.logic;
 
 import java.util.ArrayList;
+import sc.player2016.logic.Jinx.FieldColor;
 
 /**
  *
@@ -15,10 +16,15 @@ public class Evaluator {
     private static final float TURN_ADVANTAGE = 2;
     private static final float MAX_VALUE = 20;
     private static float factor; 
-
+    private static Board board;
+    
     //is called once at beginning in Jinx.findMove()
     public static void setFactor() {
         factor = Jinx.jinxIsPlayingVertical?1:-1;
+    }
+    //is called once at beginning in Jinx.findMove()
+    public static void setBoard(Board b) {
+        board = b;
     }
 
     public static float evaluateBoardPosition(ArrayList<Graph> graphsByVert,
@@ -136,8 +142,7 @@ public class Evaluator {
                     minYConflict = Math.min(minYConflict, help);
                 }
             }else{//g middle from vertGraphMinY
-                //TODO: Too much cases detected at the moment
-                if(g.getMinYField().getY() <= fVMin.getY()){//g up&middle from vertGraphMinY (not always!)
+                if(gBlocksVertMin(fVMin, g)){//g up&middle from vertGraphMinY
                     minYConflict = -MAX_VALUE;
                 }
             }
@@ -156,8 +161,7 @@ public class Evaluator {
                     maxYConflict = Math.min(maxYConflict, help);
                 }
             }else{//g middle from vertGraphMinY
-                //TODO: Too much cases detected at the moment
-                if(g.getMaxYField().getY() >= fVMax.getY()){//g down&middle from vertGraphMaxY
+                if(gBlocksVertMax(fVMax, g)){//g down&middle from vertGraphMaxY
                     maxYConflict = -MAX_VALUE;
                 }
             }
@@ -218,8 +222,7 @@ public class Evaluator {
                     minXConflict = Math.min(minXConflict, help);
                 }
             }else{//g middle from horGraphMinX
-                //TODO: Too much cases detected at the moment
-                if(g.getMinXField().getX() <= fHMin.getX()){// g left&middle from horGraphMinX
+                if(gBlocksHorMin(fHMin, g)){// g left&middle from horGraphMinX
                     minXConflict = -MAX_VALUE;
                 }
             }
@@ -238,8 +241,7 @@ public class Evaluator {
                     maxXConflict = Math.min(maxXConflict, help);
                 }
             }else{//g middle from horGraphMaxX
-                //TODO: Too much cases detected at the moment
-                if(g.getMaxXField().getX() >= fHMax.getX()){// g right&middle from horGraphMaxX
+                if(gBlocksHorMax(fHMax, g)){// g right&middle from horGraphMaxX
                     maxXConflict = -MAX_VALUE;
                 }
             }
@@ -247,7 +249,137 @@ public class Evaluator {
         return Math.min(minXConflict, maxXConflict);
     }
     
+    private static boolean gBlocksHorMax(Field horMax, Graph vertGraph){
+//        System.out.println("horMax: " + horMax + " vertGraph = " + vertGraph);
+        int y = horMax.getY();
+        FieldColor vertColor = Jinx.jinxIsPlayingVertical?
+                Jinx.FieldColor.JINX:Jinx.FieldColor.OPPONENT;
+        //iterate over two lines right from HorGraphMaxX
+        for(int x=horMax.getX(); x <= vertGraph.getMaxXField().getX(); x++){
+            //either vertGraph blocks with field (x,y)
+            if(board.getField(x, y).getFieldColor() == vertColor &&
+                (board.getFieldSave(x-2, y-1).getFieldColor() == vertColor ||
+                 board.getFieldSave(x-1, y-2).getFieldColor() == vertColor ||
+                 board.getFieldSave(x+1, y-2).getFieldColor() == vertColor ||
+                 board.getFieldSave(x+2, y-1).getFieldColor() == vertColor) && 
+                (board.getFieldSave(x-2, y+1).getFieldColor() == vertColor ||
+                 board.getFieldSave(x-1, y+2).getFieldColor() == vertColor ||
+                 board.getFieldSave(x+1, y+2).getFieldColor() == vertColor ||
+                 board.getFieldSave(x+2, y+1).getFieldColor() == vertColor)){
+//                System.out.println("true 1");
+                return true;
+            }
+            
+            //or it blocks with ( , y-1) connected with ( , y+1)
+            if((board.getFieldSave(x-1, y-1).getFieldColor() == vertColor &&
+                board.getFieldSave(x, y+1).getFieldColor() == vertColor) ||
+               (board.getFieldSave(x, y-1).getFieldColor() == vertColor &&
+                board.getFieldSave(x-1, y+1).getFieldColor() == vertColor)){
+//                System.out.println("true 2");
+                return true;
+            }
+        }
+//        System.out.println("false");
+        return false;
+    }
     
+    private static boolean gBlocksHorMin(Field horMin, Graph vertGraph){
+//        System.out.println("horMin: " + horMin + " vertGraph = " + vertGraph);
+        int y = horMin.getY();
+        FieldColor vertColor = Jinx.jinxIsPlayingVertical?
+                Jinx.FieldColor.JINX:Jinx.FieldColor.OPPONENT;
+        
+        //iterate over two lines left from HorGraphMinX
+        for(int x=horMin.getX(); x >= vertGraph.getMinXField().getX(); x--){
+            
+            //either vertGraph blocks with field (x,y)
+            if(board.getField(x, y).getFieldColor() == vertColor &&
+                (board.getFieldSave(x-2, y-1).getFieldColor() == vertColor ||
+                 board.getFieldSave(x-1, y-2).getFieldColor() == vertColor ||
+                 board.getFieldSave(x+1, y-2).getFieldColor() == vertColor ||
+                 board.getFieldSave(x+2, y-1).getFieldColor() == vertColor) && 
+                (board.getFieldSave(x-2, y+1).getFieldColor() == vertColor ||
+                 board.getFieldSave(x-1, y+2).getFieldColor() == vertColor ||
+                 board.getFieldSave(x+1, y+2).getFieldColor() == vertColor ||
+                 board.getFieldSave(x+2, y+1).getFieldColor() == vertColor)){
+//                System.out.println("true 1");
+                return true;
+            }
+            
+            //or it blocks with ( , y-1) connected with ( , y+1)
+            if((board.getFieldSave(x+1, y-1).getFieldColor() == vertColor &&
+                board.getFieldSave(x, y+1).getFieldColor() == vertColor) ||
+               (board.getFieldSave(x, y-1).getFieldColor() == vertColor &&
+                board.getFieldSave(x+1, y+1).getFieldColor() == vertColor)){
+//                System.out.println("true 2");
+                return true;
+            }
+        }
+//        System.out.println("false");
+        return false;
+    }
+    
+    private static boolean gBlocksVertMax(Field vertMax, Graph horGraph){
+        int x = vertMax.getX();
+        FieldColor horColor = Jinx.jinxIsPlayingVertical?
+                Jinx.FieldColor.OPPONENT:Jinx.FieldColor.JINX;
+        
+        //iterate over two columns down from VertGraphMaxY
+        for(int y=vertMax.getY(); y <= horGraph.getMaxYField().getY(); y++){
+            //either horGraph blocks with field (x,y)
+            if(board.getField(x, y).getFieldColor() == horColor &&
+                (board.getFieldSave(x-1, y-2).getFieldColor() == horColor ||
+                 board.getFieldSave(x-2, y-1).getFieldColor() == horColor ||
+                 board.getFieldSave(x-2, y+1).getFieldColor() == horColor ||
+                 board.getFieldSave(x-1, y+2).getFieldColor() == horColor) && 
+                (board.getFieldSave(x+1, y-2).getFieldColor() == horColor ||
+                 board.getFieldSave(x+2, y-1).getFieldColor() == horColor ||
+                 board.getFieldSave(x+2, y+1).getFieldColor() == horColor ||
+                 board.getFieldSave(x+1, y+2).getFieldColor() == horColor)){
+                return true;
+            }
+            
+            //or it blocks with (x-1 , ) connected with (x+1 ,  )
+            if((board.getFieldSave(x-1, y-1).getFieldColor() == horColor &&
+                board.getFieldSave(x+1, y).getFieldColor() == horColor) ||
+               (board.getFieldSave(x-1, y).getFieldColor() == horColor &&
+                board.getFieldSave(x+1, y-1).getFieldColor() == horColor)){
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    private static boolean gBlocksVertMin(Field vertMin, Graph horGraph){
+        int x = vertMin.getX();
+        FieldColor horColor = Jinx.jinxIsPlayingVertical?
+                Jinx.FieldColor.OPPONENT:Jinx.FieldColor.JINX;
+        
+        //iterate over two columns down from VertGraphMaxY
+        for(int y=vertMin.getY(); y >= horGraph.getMinYField().getY(); y--){
+            //either horGraph blocks with field (x,y)
+            if(board.getField(x, y).getFieldColor() == horColor &&
+                (board.getFieldSave(x-1, y-2).getFieldColor() == horColor ||
+                 board.getFieldSave(x-2, y-1).getFieldColor() == horColor ||
+                 board.getFieldSave(x-2, y+1).getFieldColor() == horColor ||
+                 board.getFieldSave(x-1, y+2).getFieldColor() == horColor) && 
+                (board.getFieldSave(x+1, y-2).getFieldColor() == horColor ||
+                 board.getFieldSave(x+2, y-1).getFieldColor() == horColor ||
+                 board.getFieldSave(x+2, y+1).getFieldColor() == horColor ||
+                 board.getFieldSave(x+1, y+2).getFieldColor() == horColor)){
+                return true;
+            }
+            
+            //or it blocks with (x-1 , ) connected with (x+1 ,  )
+            if((board.getFieldSave(x-1, y+1).getFieldColor() == horColor &&
+                board.getFieldSave(x+1, y).getFieldColor() == horColor) ||
+               (board.getFieldSave(x-1, y).getFieldColor() == horColor &&
+                board.getFieldSave(x+1, y+1).getFieldColor() == horColor)){
+                return true;
+            }
+        }
+        return false;
+    }
     
     private static Field pV;//vertical (playing) point of conflict zone (translated to the down-left corner equivalent)
     private static Field pH;//horizontal (playing) point of conflict zone (translated to the down-left corner equivalent)

@@ -22,12 +22,27 @@ public class Board {
 
     public Board(GameState gameStateAtBeginning){
             initFields(gameStateAtBeginning);
+            blackField = new Field(-1,-1);
+            blackField.setFieldColor(FieldColor.BLACK);
     }
 
     public Field getField(int x, int y){
             return fields[x] [y];
     }
 
+    //just initialized once in constructor
+    //used in getFieldSave
+    private Field blackField;
+    
+    //used in Evaluator class
+    public Field getFieldSave(int x, int y){
+        if(x < 0 || x > 23 || y < 0 || y > 23){
+            return blackField;
+        }else{
+            return fields[x][y];
+        }
+    }
+    
     public void updateBoard(Field move, boolean isJinxMove){
             FieldColor fieldColor;
             
@@ -158,17 +173,17 @@ public class Board {
         if(Jinx.jinxIsPlayingVertical){
             if(isJinxTurn){
                 System.out.println("is jinx turn");
-                return Evaluator.evaluateConflictzonesVertsMove(graphsByJinx, graphsByOpponent);
+                return Evaluator.evaluateConflictzonesHorsMove(graphsByJinx, graphsByOpponent);
             }
             System.out.println("is opponents turn");
-            return Evaluator.evaluateConflictzonesHorsMove(graphsByJinx, graphsByOpponent);
+            return Evaluator.evaluateConflictzonesVertsMove(graphsByJinx, graphsByOpponent);
         }else{
             if(isJinxTurn){
                 System.out.println("is jinx turn");
-                return Evaluator.evaluateConflictzonesHorsMove(graphsByOpponent, graphsByJinx);
+                return Evaluator.evaluateConflictzonesVertsMove(graphsByOpponent, graphsByJinx);
             }
             System.out.println("is opponents turn");
-            return Evaluator.evaluateConflictzonesVertsMove(graphsByOpponent, graphsByJinx);
+            return Evaluator.evaluateConflictzonesHorsMove(graphsByOpponent, graphsByJinx);
         }
     }
     
@@ -281,16 +296,20 @@ public class Board {
     //to calculate in a senseful depth)
     public ArrayList<Field> preselectMoves(Field lastMove, boolean isVertical){
         ArrayList<Field> result = new ArrayList<>();
-        Field help;
+        Field notCurrentPlayerMin, notCurrentPlayerMax, help;//notCurrentPlayer (can be jinx!)
         ArrayList<Graph> graphsByCurrentPlayer;
         int x, y, pX, pY;
-            
+         
         if(isVertical){//preselect for vertical player
             
             if(Jinx.jinxIsPlayingVertical){
                 graphsByCurrentPlayer = graphsByJinx;
+                notCurrentPlayerMax = graphsByOpponent.get(0).getMaxXField();
+                notCurrentPlayerMin = graphsByOpponent.get(0).getMinXField();
             }else{
                 graphsByCurrentPlayer = graphsByOpponent;
+                notCurrentPlayerMax = graphsByJinx.get(0).getMaxXField();
+                notCurrentPlayerMin = graphsByJinx.get(0).getMinXField();
             }
 
             final int[][] goodFieldsFromOwnMinY = {                    
@@ -403,6 +422,24 @@ public class Board {
                     }
                 }
             }   
+            
+            //add fields from start and end of notCurrentPlayer
+            if(notCurrentPlayerMin.getX() - 4 > 0){
+                help = getField(notCurrentPlayerMin.getX() - 4, notCurrentPlayerMin.getY());
+                if(help.getFieldColor() == FieldColor.BLACK){
+                    if(!result.contains(help)){
+                        result.add(help);
+                    }
+                }
+            }
+            if(notCurrentPlayerMax.getX() + 4 < 23){
+                help = getField(notCurrentPlayerMax.getX() + 4, notCurrentPlayerMax.getY());
+                if(help.getFieldColor() == FieldColor.BLACK){
+                    if(!result.contains(help)){
+                        result.add(help);
+                    }
+                }
+            }
 
             return result;
             
@@ -410,8 +447,12 @@ public class Board {
             
             if(Jinx.jinxIsPlayingVertical){
                 graphsByCurrentPlayer = graphsByOpponent;
+                notCurrentPlayerMax = graphsByJinx.get(0).getMaxYField();
+                notCurrentPlayerMin = graphsByJinx.get(0).getMinYField();
             }else{
                 graphsByCurrentPlayer = graphsByJinx;
+                notCurrentPlayerMax = graphsByOpponent.get(0).getMaxYField();
+                notCurrentPlayerMin = graphsByOpponent.get(0).getMinYField();
             }
 
             final int[][] goodFieldsFromOwnMinX = {                    
@@ -533,6 +574,24 @@ public class Board {
                     }
                 }
             }   
+            
+            //add fields from start and end of notCurrentPlayer (vertical)
+            if(notCurrentPlayerMin.getY() - 4 > 0){
+                help = getField(notCurrentPlayerMin.getX(), notCurrentPlayerMin.getY() - 4);
+                if(help.getFieldColor() == FieldColor.BLACK){
+                    if(!result.contains(help)){
+                        result.add(help);
+                    }
+                }
+            }
+            if(notCurrentPlayerMax.getY() + 4 < 23){
+                help = getField(notCurrentPlayerMax.getX(), notCurrentPlayerMax.getY() + 4);
+                if(help.getFieldColor() == FieldColor.BLACK){
+                    if(!result.contains(help)){
+                        result.add(help);
+                    }
+                }
+            }
 
             return result;
         }

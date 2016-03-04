@@ -45,6 +45,7 @@ public class Jinx {
                 
                 //initialize board
                 board = new Board(gameState);
+                Evaluator.setBoard(board);
                 selection = getFirstMove();
             }else{
                 if(gameState.getTurn() == 1){
@@ -53,6 +54,7 @@ public class Jinx {
                     
                     //initialize board
                     board = new Board(gameState);
+                    Evaluator.setBoard(board);
                     
                     //don't just set field color (also set start/end field of opponent graph)
                     board.updateBoard(board.getField(gameState.getLastMove().getX(), gameState.getLastMove().getY()), false);
