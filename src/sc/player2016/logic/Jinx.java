@@ -688,7 +688,6 @@ public class Jinx {
              }
             return result;
         }
-	
 }
 
 
