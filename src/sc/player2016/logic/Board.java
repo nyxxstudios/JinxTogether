@@ -173,17 +173,17 @@ public class Board {
         if(Jinx.jinxIsPlayingVertical){
             if(isJinxTurn){
                 System.out.println("is jinx turn");
-                return Evaluator.evaluateVertsConflictzones(graphsByJinx, graphsByOpponent);
+                return Evaluator.evaluateVertsConflictzones(graphsByJinx, graphsByOpponent, true);
             }
             System.out.println("is opponents turn");
-            return Evaluator.evaluateHorsConflictzones(graphsByJinx, graphsByOpponent);
+            return Evaluator.evaluateHorsConflictzones(graphsByJinx, graphsByOpponent, true);
         }else{
             if(isJinxTurn){
                 System.out.println("is jinx turn");
-                return Evaluator.evaluateHorsConflictzones(graphsByOpponent, graphsByJinx);
+                return Evaluator.evaluateHorsConflictzones(graphsByOpponent, graphsByJinx, true);
             }
             System.out.println("is opponents turn");
-            return Evaluator.evaluateVertsConflictzones(graphsByOpponent, graphsByJinx);
+            return Evaluator.evaluateVertsConflictzones(graphsByOpponent, graphsByJinx, true);
         }
     }
     

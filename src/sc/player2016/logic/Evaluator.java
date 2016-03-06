@@ -62,10 +62,10 @@ public class Evaluator {
             
 //            result += 0.1 * evaluateCurrentConflictzone(graphsByVert, graphsByHor, isVertsMove);
               if(isVertsMove){
-                result += evaluateVertsConflictzones(graphsByVert, graphsByHor);
+                result += evaluateVertsConflictzones(graphsByVert, graphsByHor, true);
                 
               }else{
-                  result += evaluateHorsConflictzones(graphsByVert, graphsByHor);
+                  result += evaluateHorsConflictzones(graphsByVert, graphsByHor, true);
               }
 //            
             
@@ -90,11 +90,10 @@ public class Evaluator {
     }
 
     public static float evaluateVertsConflictzones(ArrayList<Graph> graphsByVert,
-            ArrayList<Graph> graphsByHor){
-        //It is NOT verts move.
+            ArrayList<Graph> graphsByHor, boolean isVertsMove){
         //iterate through all graphs (with at least 2 points) by vert.
         //Each graph has a start point pS and an end point pE.
-        //For each point a conflictzone is evaluated (Lotgeradenprinzip). 
+        //For each point a conflictzone is evaluated (4-geradenprinzip). 
         //This function returns the greatest minimum (lower conflictzone, 
         //either with pS or pE) of a graph by vert.
         
@@ -105,7 +104,7 @@ public class Evaluator {
         for(Graph g : graphsByVert){
             if(g.hasJustOneField()) break;//just graphs with at least 2 fields are relevant
             
-            help = evaluateVertGraph(g, graphsByHor);
+            help = evaluateVertGraph(g, graphsByHor, isVertsMove);
 //            System.out.println("Graph " + g + "\nconflict: " + help);
             minConflictzone = Math.max(minConflictzone, help);
         }
@@ -113,7 +112,7 @@ public class Evaluator {
     }
     
     private static float evaluateVertGraph(Graph vertGraph, 
-            ArrayList<Graph> graphsByHor){
+            ArrayList<Graph> graphsByHor, boolean isVertsMove){
         float minYConflict = MAX_VALUE;
         float maxYConflict = MAX_VALUE;
         Field fVMin = vertGraph.getMinYField();
@@ -131,23 +130,34 @@ public class Evaluator {
             //fVMin
             if(fHMax.getX() <= fVMin.getX()){//g left from vertGraphMinY
                 if(fHMax.getY() <= fVMin.getY()){//g up&left from vertGraphMinY
-//                    help = (fVMin.getX() - fHMax.getX()) - 
-//                            (fVMin.getY() - fHMax.getY());// + TURN_ADVANTAGE
-                    
+
                     //conflict is in up&right corner
-                    help = evaluateConflictPoints(new Field(23 - fVMin.getX(), fVMin.getY()), 
-                            new Field(23 - fHMax.getX(), fHMax.getY()));
-                    
+                    Field pV = new Field(23 - fVMin.getX(), fVMin.getY());
+                    Field pH = new Field(23 - fHMax.getX(), fHMax.getY());
+                    if(!isVertsMove){
+                        //it is hors move, so swap pV and pH 
+                        //(reflect them by swapping x and y coordinates)
+                        Field f = pV;
+                        pV = new Field(pH.getY(), pH.getX());
+                        pH = new Field(f.getY(), f.getX());
+                    }
+                    help = evaluateConflictPoints(pV, pH);
                     minYConflict = Math.min(minYConflict, help);
                 }
             }else if(fHMin.getX() >= fVMin.getX()){//g right from vertGraphMinY
                 if(fHMin.getY() <= fVMin.getY()){//g up&right from vertGraphMinY
-//                    help = (fHMin.getX() - fVMin.getX()) - 
-//                            (fVMin.getY() - fHMin.getY());// + TURN_ADVANTAGE
-                    
+
                     //conflict is in up&left corner
-                    help = evaluateConflictPoints(fVMin, fHMin);
-                    
+                    Field pV = fVMin;
+                    Field pH = fHMin;
+                    if(!isVertsMove){
+                        //it is hors move, so swap pV and pH 
+                        //(reflect them by swapping x and y coordinates)
+                        Field f = pV;
+                        pV = new Field(pH.getY(), pH.getX());
+                        pH = new Field(f.getY(), f.getX());
+                    }
+                    help = evaluateConflictPoints(pV, pH);
                     minYConflict = Math.min(minYConflict, help);
                 }
             }else{//g middle from vertGraphMinY
@@ -157,16 +167,33 @@ public class Evaluator {
                     if(fHMin.getY() < fVMin.getY() && 
                             fHMin.getX() + 1 == fVMin.getX()){
                         
-                        //conflict is in up&left corner
-                        help = evaluateConflictPoints(fVMin, fHMin);
+                         //conflict is in up&left corner
+                        Field pV = fVMin;
+                        Field pH = fHMin;
+                        if(!isVertsMove){
+                            //it is hors move, so swap pV and pH 
+                            //(reflect them by swapping x and y coordinates)
+                            Field f = pV;
+                            pV = new Field(pH.getY(), pH.getX());
+                            pH = new Field(f.getY(), f.getX());
+                        }
+                        help = evaluateConflictPoints(pV, pH);
                         minYConflict = Math.min(minYConflict, help);
                         
                     }else if(fHMax.getY() < fVMin.getY() && 
                             fHMax.getX() - 1 == fVMin.getX()){
                         
-                        //conflict is in up&right corner
-                        help = evaluateConflictPoints(new Field(23 - fVMin.getX(), fVMin.getY()), 
-                                new Field(23 - fHMax.getX(), fHMax.getY()));
+                         //conflict is in up&right corner
+                        Field pV = new Field(23 - fVMin.getX(), fVMin.getY());
+                        Field pH = new Field(23 - fHMax.getX(), fHMax.getY());
+                        if(!isVertsMove){
+                            //it is hors move, so swap pV and pH 
+                            //(reflect them by swapping x and y coordinates)
+                            Field f = pV;
+                            pV = new Field(pH.getY(), pH.getX());
+                            pH = new Field(f.getY(), f.getX());
+                        }
+                        help = evaluateConflictPoints(pV, pH);
                         minYConflict = Math.min(minYConflict, help);
                     
                     }else{//usual case
@@ -178,24 +205,34 @@ public class Evaluator {
             //fVMax
             if(fHMax.getX() <= fVMax.getX()){//g left from vertGraphMaxY
                 if(fHMax.getY() >= fVMax.getY()){//g down&left from vertGraphMaxY
-//                    help = (fVMax.getX() - fHMax.getX()) - 
-//                            (fHMax.getY() - fVMax.getY());// + TURN_ADVANTAGE
                     
                     //conflict is in down&right corner
-                    help = evaluateConflictPoints(new Field(23 - fVMax.getX(), 23 - fVMax.getY()), 
-                            new Field(23 - fHMax.getX(), 23 - fHMax.getY()));
-                    
+                    Field pV = new Field(23 - fVMax.getX(), 23 - fVMax.getY());
+                    Field pH = new Field(23 - fHMax.getX(), 23 - fHMax.getY());
+                    if(!isVertsMove){
+                        //it is hors move, so swap pV and pH 
+                        //(reflect them by swapping x and y coordinates)
+                        Field f = pV;
+                        pV = new Field(pH.getY(), pH.getX());
+                        pH = new Field(f.getY(), f.getX());
+                    }
+                    help = evaluateConflictPoints(pV, pH);
                     maxYConflict = Math.min(maxYConflict, help);
                 }
             }else if(fHMin.getX() >= fVMax.getX()){//g right from vertGraphMaxY
                 if(fHMin.getY() >= fVMax.getY()){//g down&right from vertGraphMaxY
-//                    help = (fHMin.getX() - fVMax.getX()) - 
-//                            (fHMin.getY() - fVMax.getY());// + TURN_ADVANTAGE#
-                    
+
                     //conflict is in down&left corner
-                    help = evaluateConflictPoints(new Field(fVMax.getX(), 23 - fVMax.getY()), 
-                            new Field(fHMin.getX(), 23 - fHMin.getY()));
-                    
+                    Field pV = new Field(fVMax.getX(), 23 - fVMax.getY());
+                    Field pH = new Field(fHMin.getX(), 23 - fHMin.getY());
+                    if(!isVertsMove){
+                        //it is hors move, so swap pV and pH 
+                        //(reflect them by swapping x and y coordinates)
+                        Field f = pV;
+                        pV = new Field(pH.getY(), pH.getX());
+                        pH = new Field(f.getY(), f.getX());
+                    }
+                    help = evaluateConflictPoints(pV, pH);
                     maxYConflict = Math.min(maxYConflict, help);
                 }
             }else{//g middle from vertGraphMinY
@@ -205,17 +242,33 @@ public class Evaluator {
                     if(fHMin.getY() > fVMax.getY() && 
                             fHMin.getX() + 1 == fVMax.getX()){
                         
-                        //conflict is in down&left corner
-                        help = evaluateConflictPoints(new Field(fVMax.getX(), 23 - fVMax.getY()), 
-                                new Field(fHMin.getX(), 23 - fHMin.getY()));
+                       //conflict is in down&left corner
+                        Field pV = new Field(fVMax.getX(), 23 - fVMax.getY());
+                        Field pH = new Field(fHMin.getX(), 23 - fHMin.getY());
+                        if(!isVertsMove){
+                            //it is hors move, so swap pV and pH 
+                            //(reflect them by swapping x and y coordinates)
+                            Field f = pV;
+                            pV = new Field(pH.getY(), pH.getX());
+                            pH = new Field(f.getY(), f.getX());
+                        }
+                        help = evaluateConflictPoints(pV, pH);
                         maxYConflict = Math.min(maxYConflict, help);
                         
                     }else if(fHMax.getY() > fVMax.getY() && 
                             fHMax.getX() - 1 == fVMax.getX()){
                         
                         //conflict is in down&right corner
-                        help = evaluateConflictPoints(new Field(23 - fVMax.getX(), 23 - fVMax.getY()), 
-                                new Field(23 - fHMax.getX(), 23 - fHMax.getY()));
+                        Field pV = new Field(23 - fVMax.getX(), 23 - fVMax.getY());
+                        Field pH = new Field(23 - fHMax.getX(), 23 - fHMax.getY());
+                        if(!isVertsMove){
+                            //it is hors move, so swap pV and pH 
+                            //(reflect them by swapping x and y coordinates)
+                            Field f = pV;
+                            pV = new Field(pH.getY(), pH.getX());
+                            pH = new Field(f.getY(), f.getX());
+                        }
+                        help = evaluateConflictPoints(pV, pH);
                         maxYConflict = Math.min(maxYConflict, help);
                     
                     }else{//usual case
@@ -228,11 +281,10 @@ public class Evaluator {
     }
     
     public static float evaluateHorsConflictzones(ArrayList<Graph> graphsByVert,
-            ArrayList<Graph> graphsByHor){
-        //It is NOT hors move.
+            ArrayList<Graph> graphsByHor, boolean isHorsMove){
         //iterate through all graphs (with at least 2 points) by hor.
         //Each graph has a start point pS and an end point pE.
-        //For each point a conflictzone is evaluated (Lotgeradenprinzip). 
+        //For each point a conflictzone is evaluated (4-geradenprinzip). 
         //This function returns the greatest minimum (lower conflictzone, 
         //either with pS or pE) of a graph by hor.
         
@@ -243,7 +295,7 @@ public class Evaluator {
         for(Graph g : graphsByHor){
             if(g.hasJustOneField()) break;//just graphs with at least 2 fields are relevant
             
-            help = evaluateHorGraph(g, graphsByVert);
+            help = evaluateHorGraph(g, graphsByVert, isHorsMove);
 //            System.out.println("Graph " + g + "\nconflict: " + help);
             minConflictzone = Math.max(minConflictzone, help);
         }
@@ -251,7 +303,7 @@ public class Evaluator {
     }
 
     private static float evaluateHorGraph(Graph horGraph, 
-            ArrayList<Graph> graphsByVert){
+            ArrayList<Graph> graphsByVert, boolean isHorsMove){
         float minXConflict = MAX_VALUE;
         float maxXConflict = MAX_VALUE;
         Field fHMin = horGraph.getMinXField();
@@ -269,29 +321,35 @@ public class Evaluator {
             //fHMin
             if(fVMax.getY() <= fHMin.getY()){//g up from horGraphMinX
                 if(fVMax.getX() <= fHMin.getX()){//g up&left from horGraphMinX
-//                    help = (fHMin.getY() - fVMax.getY()) -
-//                            (fHMin.getX() - fVMax.getX());// + TURN_ADVANTAGE
                     
-                    //conflict is in down&left corner (it is hors move, so 
-                    //swap pV and pH (reflect them by swapping x and y coordinates))
+                    //conflict is in down&left corner 
                     Field pV = new Field(fVMax.getX(), 23 - fVMax.getY());
                     Field pH = new Field(fHMin.getX(), 23 - fHMin.getY());
-                    help = evaluateConflictPoints(new Field(pH.getY(), pH.getX()), 
-                            new Field(pV.getY(), pV.getX()));
-                    
+                    if(isHorsMove){
+                        //(it is hors move, so swap pV and pH 
+                        //(reflect them by swapping x and y coordinates))
+                        Field f = pV;
+                        pV = new Field(pH.getY(), pH.getX());
+                        pH = new Field(f.getY(), f.getX());
+                    }
+                    help = evaluateConflictPoints(pV, pH);
                     minXConflict = Math.min(minXConflict, help);
                 }
             }else if(fVMin.getY() >= fHMin.getY()){//g down from horGraphMinX
                 if(fVMin.getX() <= fHMin.getX()){//g down&left from horGraphMinX
 //                    help = (fVMin.getY() - fHMin.getY()) - 
 //                            (fHMin.getX() - fVMin.getX());// + TURN_ADVANTAGE
-                    
-                    //conflict is in up&left corner (it is hors move, so 
-                    //swap pV and pH (reflect them by swapping x and y coordinates))
+                    //conflict is in up&left corner
                     Field pV = fVMin;
-                    Field pH = fHMin;
-                    help = evaluateConflictPoints(new Field(pH.getY(), pH.getX()), 
-                            new Field(pV.getY(), pV.getX()));
+                    Field pH = fHMin; 
+                    if(isHorsMove){
+                        //(it is hors move, so swap pV and pH 
+                        //(reflect them by swapping x and y coordinates))
+                        Field f = pV;
+                        pV = new Field(pH.getY(), pH.getX());
+                        pH = new Field(f.getY(), f.getX());
+                    }
+                    help = evaluateConflictPoints(pV, pH);
                     minXConflict = Math.min(minXConflict, help);
                 }
             }else{//g middle from horGraphMinX
@@ -300,24 +358,33 @@ public class Evaluator {
                     //check if conflictsituation could be won, although g blocks
                     if(fVMin.getX() < fHMin.getX() && 
                             fVMin.getY() + 1 == fHMin.getY()){
-                        
-                       //conflict is in up&left corner (it is hors move, so 
-                        //swap pV and pH (reflect them by swapping x and y coordinates))
+                        //conflict is in up&left corner
                         Field pV = fVMin;
                         Field pH = fHMin;
-                        help = evaluateConflictPoints(new Field(pH.getY(), pH.getX()), 
-                                new Field(pV.getY(), pV.getX()));
+                        if(isHorsMove){
+                            //(it is hors move, so swap pV and pH 
+                            //(reflect them by swapping x and y coordinates))
+                            Field f = pV;
+                            pV = new Field(pH.getY(), pH.getX());
+                            pH = new Field(f.getY(), f.getX());
+                        }
+                        help = evaluateConflictPoints(pV, pH);
                         minXConflict = Math.min(minXConflict, help);
                         
                     }else if(fVMax.getX() < fHMin.getX() && 
                             fVMax.getY() - 1 == fHMin.getY()){
                         
-                        //conflict is in down&left corner (it is hors move, so 
-                        //swap pV and pH (reflect them by swapping x and y coordinates))
+                        //conflict is in down&left corner
                         Field pV = new Field(fVMax.getX(), 23 - fVMax.getY());
                         Field pH = new Field(fHMin.getX(), 23 - fHMin.getY());
-                        help = evaluateConflictPoints(new Field(pH.getY(), pH.getX()), 
-                                new Field(pV.getY(), pV.getX()));
+                        if(isHorsMove){
+                            //(it is hors move, so swap pV and pH 
+                            //(reflect them by swapping x and y coordinates))
+                            Field f = pV;
+                            pV = new Field(pH.getY(), pH.getX());
+                            pH = new Field(f.getY(), f.getX());
+                        }
+                        help = evaluateConflictPoints(pV, pH);
                         minXConflict = Math.min(minXConflict, help);
                     
                     }else{//usual case
@@ -329,28 +396,34 @@ public class Evaluator {
             //fHMax
             if(fVMax.getY() <= fHMax.getY()){//g up from horGraphMaxX
                 if(fVMax.getX() >= fHMax.getX()){//g up&right from horGraphMaxX
-//                    help = (fHMax.getY() - fVMax.getY()) -
-//                            (fVMax.getX() - fHMax.getX());// + TURN_ADVANTAGE
                     
-                    //conflict is in down&right corner (it is hors move, so 
-                    //swap pV and pH (reflect them by swapping x and y coordinates))
+                    //conflict is in down&right corner
                     Field pV = new Field(23 - fVMax.getX(), 23 - fVMax.getY());
                     Field pH = new Field(23 - fHMax.getX(), 23 - fHMax.getY());
-                    help = evaluateConflictPoints(new Field(pH.getY(), pH.getX()), 
-                            new Field(pV.getY(), pV.getX()));
+                    if(isHorsMove){
+                        //(it is hors move, so swap pV and pH 
+                        //(reflect them by swapping x and y coordinates))
+                        Field f = pV;
+                        pV = new Field(pH.getY(), pH.getX());
+                        pH = new Field(f.getY(), f.getX());
+                    }
+                    help = evaluateConflictPoints(pV, pH);
                     maxXConflict = Math.min(maxXConflict, help);
                 }
             }else if(fVMin.getY() >= fHMax.getY()){//g down from horGraphMaxX
                 if(fVMin.getX() >= fHMax.getX()){//g down&right from horGraphMaxX
-//                    help = (fVMin.getY() - fHMax.getY()) - 
-//                            (fVMin.getX() - fHMax.getX());// + TURN_ADVANTAGE
-                    
-                    //conflict is in up&right corner (it is hors move, so 
-                    //swap pV and pH (reflect them by swapping x and y coordinates))
+
+                    //conflict is in up&right corner
                     Field pV = new Field(23 - fVMin.getX(), fVMin.getY());
                     Field pH = new Field(23 - fHMax.getX(), fHMax.getY());
-                    help = evaluateConflictPoints(new Field(pH.getY(), pH.getX()), 
-                            new Field(pV.getY(), pV.getX()));
+                    if(isHorsMove){
+                        //(it is hors move, so swap pV and pH 
+                        //(reflect them by swapping x and y coordinates))
+                        Field f = pV;
+                        pV = new Field(pH.getY(), pH.getX());
+                        pH = new Field(f.getY(), f.getX());
+                    }
+                    help = evaluateConflictPoints(pV, pH);
                     maxXConflict = Math.min(maxXConflict, help);
                 }
             }else{//g middle from horGraphMaxX
@@ -360,23 +433,33 @@ public class Evaluator {
                     if(fVMin.getX() > fHMax.getX() && 
                             fVMin.getY() + 1 == fHMax.getY()){
                         
-                       //conflict is in up&right corner (it is hors move, so 
-                        //swap pV and pH (reflect them by swapping x and y coordinates))
+                       //conflict is in up&right corner
                         Field pV = new Field(23 - fVMin.getX(), fVMin.getY());
                         Field pH = new Field(23 - fHMax.getX(), fHMax.getY());
-                        help = evaluateConflictPoints(new Field(pH.getY(), pH.getX()), 
-                                new Field(pV.getY(), pV.getX()));
+                        if(isHorsMove){
+                            //(it is hors move, so swap pV and pH 
+                            //(reflect them by swapping x and y coordinates))
+                            Field f = pV;
+                            pV = new Field(pH.getY(), pH.getX());
+                            pH = new Field(f.getY(), f.getX());
+                        }
+                        help = evaluateConflictPoints(pV, pH);
                         maxXConflict = Math.min(maxXConflict, help);
                         
                     }else if(fVMax.getX() > fHMax.getX() && 
                             fVMax.getY() - 1 == fHMax.getY()){
                         
-                        //conflict is in down&right corner (it is hors move, so 
-                        //swap pV and pH (reflect them by swapping x and y coordinates))
+                        //conflict is in down&right corner
                         Field pV = new Field(23 - fVMax.getX(), 23 - fVMax.getY());
                         Field pH = new Field(23 - fHMax.getX(), 23 - fHMax.getY());
-                        help = evaluateConflictPoints(new Field(pH.getY(), pH.getX()), 
-                                new Field(pV.getY(), pV.getX()));
+                        if(isHorsMove){
+                            //(it is hors move, so swap pV and pH 
+                            //(reflect them by swapping x and y coordinates))
+                            Field f = pV;
+                            pV = new Field(pH.getY(), pH.getX());
+                            pH = new Field(f.getY(), f.getX());
+                        }
+                        help = evaluateConflictPoints(pV, pH);
                         maxXConflict = Math.min(maxXConflict, help);
                     
                     }else{//usual case

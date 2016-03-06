@@ -37,6 +37,12 @@ public class Jinx {
             
             System.out.println("Round " + gameState.getRound() + "  ----------------------");
 
+            Field f = new Field(0,0);
+            Field g = new Field(1,1);
+            Field h = f;
+            f = g;
+            g = h;
+            System.out.println("f = " + f + " g = " + g);
             Move selection = null;
               
             if(gameState.getTurn() == 0){
@@ -189,7 +195,7 @@ public class Jinx {
                     
                     
                 }//end of 'increase depth by 1 loop'    
-//                System.out.println("Zeit: " + (System.currentTimeMillis() - startTime)/(float)1000);
+                System.out.println("Zeit: " + (System.currentTimeMillis() - startTime)/(float)1000);
 //                System.out.println("Number of cutoffs = " + numberOfCutoffs);
                 //timeIsOver => return best move found
                 return result;
