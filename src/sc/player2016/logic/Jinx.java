@@ -527,106 +527,126 @@ public class Jinx {
             Move result = null;
             int rowX = gameState.getLastMove().getX();
                 
-                //Level 3
             //find cooridors between swamps and get best Row for the MoveY
          
-                //gets all Y-Rows where no  swamps are
-                ArrayList<Integer> noSwampY = new ArrayList();
-                boolean swampRow;
-                
-                
-                String bal = board.getField(7, 8).getFieldColor().toString();
-                
-                
-                for (int j = 1; j <= 22; j++){
-                    swampRow = false;
-                    for (int i = 1; i <= 22; i++){
-                        if (swampRow == false){
-                            if ((board.getField(i, j).getFieldColor() == Jinx.FieldColor.BLACK || board.getField(i, j).getFieldColor() == Jinx.FieldColor.OPPONENT) && i == 22){
-                                if (!(noSwampY.contains(j))){
-                                    noSwampY.add(j);
-                                  }
-                            } else if (board.getField(i, j).getFieldColor() == Jinx.FieldColor.GREEN) {
-                            swampRow = true;
-                            }
-                        }
-                    }
-                }
-                System.out.println("noSwampRows:" + noSwampY);
-                
-              //   System.out.println("Debug4");
-                 
-                //find  cooridors
-                ArrayList<Integer[]> cooridors = new ArrayList(); 
-                boolean stillCooridor = false; //flase == sseking for new ; true == have one
-                int start = 0; 
-                
-                for (int i = 1; i <= 22; i++){
-                    //System.out.println(i);
-                    if (noSwampY.contains(i) && stillCooridor == false){
-                        start = i;
-                        stillCooridor = true;
-                    } else if (stillCooridor == true && !noSwampY.contains(i)){
-                        int helper = i - 1;
-                        Integer [] a = {start, helper};
-                        cooridors.add(a);
-                        stillCooridor = false;
-                    }
-                }
-                
-                if (stillCooridor) {
-                        Integer [] a = {start, 21};
-                        cooridors.add(a);
-                        stillCooridor = false;
-                }
-                
-                System.out.print("SwampFreeCooridors:");
-                for (Integer[] outer : cooridors) {
-                    for(Integer inner : outer) {
-                      System.out.print(inner + ",");
-                    }
-                  }
-                System.out.println("");
-                
-                //find largest Cooridor
-                int indexOfLargestCor = 1000;
-                int size = 0;
-                int indexOfSecondLargestCor = 1000;
-                
-                for (int i = 0; i < cooridors.size(); i++){
-                    //System.out.println("i: " + i);
-                    if (size <= (cooridors.get(i)[1] - cooridors.get(i)[0])){
-                        size = cooridors.get(i)[1] - cooridors.get(i)[0];
-                        indexOfSecondLargestCor = indexOfLargestCor;
-                        indexOfLargestCor = i;
-                    }
-                }
-                
-                System.out.println("indexOfLargestCor: "  + indexOfLargestCor);
-                
-                //get right rowY
-                float center = ((cooridors.get(indexOfLargestCor)[1] - cooridors.get(indexOfLargestCor)[0]) / 2);
-                    
-                System.out.println(center);
-                
-                float rowY;
-                rowY = cooridors.get(indexOfLargestCor)[0] + center;
-                
-                
-                
-                if (rowY < 12 ) {
-                    rowY = (int) (rowY + 0.5);
-                }else if(rowY > 12){
-                    rowY = (int) Math.floor(rowY);
-                }
-                
-                System.out.println("rowY: " + rowY);
-                            
-                result = getSecondMoveSub(indexOfLargestCor, gameState, cooridors, (int) rowY);
+            //gets all Y-Rows where no  swamps are
+            ArrayList<Integer> noSwampY = new ArrayList();
+            boolean swampRow;
 
-                 if (result == null) {
-                     result = getSecondMoveSub(indexOfSecondLargestCor, gameState, cooridors, (int) rowY);
-                 }
+            for (int row = 1; row <= 22; row++){
+                swampRow = false;
+                for (int col = 1; col <= 22; col++){
+                    if (board.getField(col, row).getFieldColor() == Jinx.FieldColor.GREEN) {
+                        swampRow = true;
+                        break;
+                    }
+                }
+                if(!swampRow){
+                    noSwampY.add(row);
+                }
+            }
+            System.out.println("noSwampRows:" + noSwampY);
+
+            //find  cooridors
+            ArrayList<Integer[]> corridors = new ArrayList(); 
+            boolean stillCorridor = false; //false: seeking for new; true: have one
+            int start = 0; 
+
+            for (int i = 1; i <= 22; i++){
+                //System.out.println(i);
+                if (noSwampY.contains(i) && !stillCorridor){
+                    start = i;
+                    stillCorridor = true;
+                } else if (stillCorridor && !noSwampY.contains(i)){
+                    int helper = i - 1;
+                    Integer [] a = {start, helper};
+                    corridors.add(a);
+                    stillCorridor = false;
+                }
+            }
+
+            if (stillCorridor) {
+                    Integer [] a = {start, 22};
+                    corridors.add(a);
+                    stillCorridor = false;
+            }
+
+            System.out.print("SwampFreeCooridors:");
+            for (Integer[] outer : corridors) {
+                for(Integer inner : outer) {
+                  System.out.print(inner + ",");
+                }
+              }
+            System.out.println("");
+
+            //find largest Cooridor
+            int indexOfLargestCor = 1000;
+            int indexOfSecondLargestCor = 1000;
+            int indexOfThirdLargestCor = 1000;
+            int size = 0;
+            
+            //get indexOfLargestCorridor
+            for (int i = 0; i < corridors.size(); i++){
+                if (size <= (corridors.get(i)[1] - corridors.get(i)[0])){
+                    indexOfLargestCor = i;
+                    size = corridors.get(i)[1] - corridors.get(i)[0];
+                }
+            }
+            
+            size = 0;
+            
+            //get indexOfSecondLargestCorridor
+            for (int i = 0; i < corridors.size(); i++){
+                if (i != indexOfLargestCor &&
+                        size <= (corridors.get(i)[1] - corridors.get(i)[0])){
+                    indexOfSecondLargestCor = i;
+                    size = corridors.get(i)[1] - corridors.get(i)[0];
+                }
+            }
+            
+            size = 0;
+            
+            //get indexOfThirdLargestCorridor
+            for (int i = 0; i < corridors.size(); i++){
+                if (i != indexOfLargestCor && i != indexOfSecondLargestCor &&
+                        size <= (corridors.get(i)[1] - corridors.get(i)[0])){
+                    indexOfThirdLargestCor = i;
+                    size = corridors.get(i)[1] - corridors.get(i)[0];
+                }
+            }
+
+            System.out.println("indexOfLargestCor: "  + indexOfLargestCor);
+            System.out.println("indexOfSecondLargestCor: "  + indexOfSecondLargestCor);
+            System.out.println("indexOfThirdLargestCor: "  + indexOfThirdLargestCor);
+
+            //get right rowY
+            float center = ((corridors.get(indexOfLargestCor)[1] - corridors.get(indexOfLargestCor)[0]) / 2);
+
+            System.out.println(center);
+
+            float rowY;
+            rowY = corridors.get(indexOfLargestCor)[0] + center;
+
+
+
+            if (rowY < 12 ) {
+                rowY = (int) (rowY + 0.5);
+            }else if(rowY > 12){
+                rowY = (int) Math.floor(rowY);
+            }
+
+            System.out.println("rowY: " + rowY);
+
+            result = getSecondMoveSub(indexOfLargestCor, gameState, corridors, (int) rowY);
+
+            if (result == null) {
+                result = getSecondMoveSub(indexOfSecondLargestCor, gameState, corridors, (int) rowY);
+                
+                if(result == null){
+                    
+                    result = getSecondMoveSub(indexOfThirdLargestCor, gameState, corridors, (int) rowY);
+                }
+            }
 
             return result;
         }
@@ -652,46 +672,47 @@ public class Jinx {
         private static Move getSecondMoveSub (int corIndex, GameState gameState, ArrayList<Integer[]> cooridors, int rowY){
             boolean movefound = false;
                     
-                ArrayList<Move> findMostMiddle = new ArrayList();
-                
-                 for (int i = 0; i < gameState.getPossibleMoves().size() && !movefound; i++) {
-                     //System.out.println("lastloop" + i);
-                        //if in largest kooridor
-                        if (gameState.getPossibleMoves().get(i).getY() <= cooridors.get(corIndex)[1] && gameState.getPossibleMoves().get(i).getY() >= cooridors.get(corIndex)[0]) {
-                       //     System.out.println("con 1: " + gameState.getPossibleMoves().get(i).getX() + "," + gameState.getPossibleMoves().get(i).getY());
-                            //if in rowX of first Move
-                            if (gameState.getPossibleMoves().get(i).getX() == gameState.getLastMove().getX()) {
-                           //     System.out.println("con 2");
-                                //if +4 || -4 far away on X
-                                if ((gameState.getPossibleMoves().get(i).getY() >= (gameState.getLastMove().getY() + 4)) || (gameState.getPossibleMoves().get(i).getY() <= (gameState.getLastMove().getY() - 4))){
-                         //           System.out.println("con 3: " + gameState.getPossibleMoves().get(i).getX() + "," + gameState.getPossibleMoves().get(i).getY());
-                                    findMostMiddle.add(new Move(gameState.getPossibleMoves().get(i).getX() , gameState.getPossibleMoves().get(i).getY()));
-                                    
-                                    //movefound = true;
-                                }
-                            }
+            ArrayList<Move> findMostMiddle = new ArrayList();
+
+            for (int i = 0; i < gameState.getPossibleMoves().size() && !movefound; i++) {
+                //System.out.println("lastloop" + i);
+                   //if in largest kooridor
+                if (gameState.getPossibleMoves().get(i).getY() <= cooridors.get(corIndex)[1] && gameState.getPossibleMoves().get(i).getY() >= cooridors.get(corIndex)[0]) {
+               //     System.out.println("con 1: " + gameState.getPossibleMoves().get(i).getX() + "," + gameState.getPossibleMoves().get(i).getY());
+                    //if in rowX of first Move
+                    if (gameState.getPossibleMoves().get(i).getX() == gameState.getLastMove().getX()) {
+                   //     System.out.println("con 2");
+                        //if +4 || -4 far away on X
+                        if ((gameState.getPossibleMoves().get(i).getY() >= (gameState.getLastMove().getY() + 4)) || (gameState.getPossibleMoves().get(i).getY() <= (gameState.getLastMove().getY() - 4))){
+                 //           System.out.println("con 3: " + gameState.getPossibleMoves().get(i).getX() + "," + gameState.getPossibleMoves().get(i).getY());
+                            findMostMiddle.add(new Move(gameState.getPossibleMoves().get(i).getX() , gameState.getPossibleMoves().get(i).getY()));
+
+                            //movefound = true;
                         }
                     }
-             int best = 1000; 
-             int diffOfBest = 1000;   
-             int diffOcc = 1000;
-             
-             for (int i = 0; i < findMostMiddle.size(); i++ ){
-                 //System.out.println("diff of best: "+i + "CorrdsY: "+ findMostMiddle.get(i).getY());
-                 diffOcc = (int) Math.abs(rowY - findMostMiddle.get(i).getY());
-                 System.out.println(diffOcc);
-                 if (diffOcc < diffOfBest) {
-                     diffOfBest = diffOcc;
-                   //  System.out.println(findMostMiddle.get(i).getX()+ "," +findMostMiddle.get(i).getY()+ ",diffOfBest:  " +diffOfBest);
-                     best = i;
-                 }
-             }
-             
+                }
+            }
+            
+            int best = 1000; 
+            int diffOfBest = 1000;   
+            int diffOcc = 1000;
+
+            for (int i = 0; i < findMostMiddle.size(); i++ ){
+                //System.out.println("diff of best: "+i + "CorrdsY: "+ findMostMiddle.get(i).getY());
+                diffOcc = (int) Math.abs(rowY - findMostMiddle.get(i).getY());
+                System.out.println(diffOcc);
+                if (diffOcc < diffOfBest) {
+                    diffOfBest = diffOcc;
+                  //  System.out.println(findMostMiddle.get(i).getX()+ "," +findMostMiddle.get(i).getY()+ ",diffOfBest:  " +diffOfBest);
+                    best = i;
+                }
+            }
+
             Move  result = null;
-             
+
             if(best != 1000){   
                  result = new Move(findMostMiddle.get(best).getX(), findMostMiddle.get(best).getY());
-             }
+            }
             return result;
         }
 }
