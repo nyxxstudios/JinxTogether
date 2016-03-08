@@ -27,7 +27,7 @@ public class Jinx {
 	private static Field lastMoveByJinx = null;
 	
 	enum FieldColor{
-		BLACK, GREEN, JINX, OPPONENT
+		BLACK, GREEN, JINX, OPPONENT, LIGHT_JINX, LIGHT_OPPONENT
 	}
 	
 	/*Generates the best move, Jinx1 is able to find.

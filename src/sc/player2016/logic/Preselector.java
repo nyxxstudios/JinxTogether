@@ -6,6 +6,7 @@
 package sc.player2016.logic;
 
 import java.util.ArrayList;
+import sc.player2016.logic.Jinx.FieldColor;
 
 /**
  *
@@ -29,17 +30,22 @@ public class Preselector {
         Field notCurrentPlayerMin, notCurrentPlayerMax, help;//notCurrentPlayer (can be jinx!)
         ArrayList<Graph> graphsByCurrentPlayer;
         int x, y, pX, pY;
-         
+        FieldColor vertLightColor, horLightColor, black = FieldColor.BLACK;
+        
         if(isVertical){//preselect for vertical player
             
             if(Jinx.jinxIsPlayingVertical){
                 graphsByCurrentPlayer = board.graphsByJinx;
                 notCurrentPlayerMax = board.graphsByOpponent.get(0).getMaxXField();
                 notCurrentPlayerMin = board.graphsByOpponent.get(0).getMinXField();
+                vertLightColor = FieldColor.LIGHT_JINX;
+                horLightColor = FieldColor.LIGHT_OPPONENT;
             }else{
                 graphsByCurrentPlayer = board.graphsByOpponent;
                 notCurrentPlayerMax = board.graphsByJinx.get(0).getMaxXField();
                 notCurrentPlayerMin = board.graphsByJinx.get(0).getMinXField();
+                vertLightColor = FieldColor.LIGHT_OPPONENT;
+                horLightColor = FieldColor.LIGHT_JINX;
             }
 
             final int[][] goodFieldsFromOwnMinY = {                    
@@ -62,7 +68,7 @@ public class Preselector {
     //                                                {-1,-3}, { 0,-3}, { 1,-3}, 
                                     {-3,-3},                                            { 3,-3},
                                             {-2,-1}, {-1,-1}, { 0,-1}, { 1,-1}, { 2,-1},
-                            {-4, 0},                 {-1, 0},          { 1, 0},                 { 4, 0},
+                            {-4, 0},        {-2, 0}, {-1, 0},          { 1, 0}, { 2, 0},                { 4, 0},
                                             {-2, 1}, {-1, 1}, { 0, 1}, { 1, 1}, { 2, 1},
                                     {-3, 3},                                            { 3, 3},
     //                                                {-1, 3}, { 0, 3}, { 1, 3},
@@ -76,14 +82,14 @@ public class Preselector {
                 if(g.getMinYField().getY() - 2 >= 0){
                     if(g.getMinYField().getX() - 1 > 0){
                         help = board.getField(g.getMinYField().getX()-1, g.getMinYField().getY()-2);
-                        if(help.getFieldColor() == Jinx.FieldColor.BLACK
+                        if((help.getFieldColor() == black || help.getFieldColor() == vertLightColor)
                                 && !result.contains(help)){
                             result.add(help);
                         }
                     }
                     if(g.getMinYField().getX() + 1 < 23){
                         help =board.getField(g.getMinYField().getX()+1, g.getMinYField().getY()-2);
-                        if(help.getFieldColor() == Jinx.FieldColor.BLACK
+                        if((help.getFieldColor() == black || help.getFieldColor() == vertLightColor)
                                 && !result.contains(help)){
                             result.add(help);
                         }
@@ -93,14 +99,14 @@ public class Preselector {
                 if(g.getMaxYField().getY() + 2 <= 23){
                     if(g.getMaxYField().getX() - 1 > 0){
                         help = board.getField(g.getMaxYField().getX()-1, g.getMaxYField().getY()+2);
-                        if(help.getFieldColor() == Jinx.FieldColor.BLACK
+                        if((help.getFieldColor() == black || help.getFieldColor() == vertLightColor)
                                 && !result.contains(help)){
                             result.add(help);
                         }
                     }
                     if(g.getMaxYField().getX() + 1 < 23){
                         help = board.getField(g.getMaxYField().getX()+1, g.getMaxYField().getY()+2);
-                        if(help.getFieldColor() == Jinx.FieldColor.BLACK
+                        if((help.getFieldColor() == black || help.getFieldColor() == vertLightColor)
                                 && !result.contains(help)){
                             result.add(help);
                         }
@@ -116,7 +122,8 @@ public class Preselector {
                 pX = x+f[0];
                 pY = y+f[1];
                 if(pX > 0 && pX < 23 && pY >= 0 && pY < 24){
-                    if(board.getField(pX,pY).getFieldColor() == Jinx.FieldColor.BLACK){
+                    if((board.getField(pX,pY).getFieldColor() == black ||
+                            board.getField(pX,pY).getFieldColor() == vertLightColor)){
                         if(!result.contains(board.getField(pX,pY))){
                                 result.add(board.getField(pX,pY));
                         }
@@ -130,7 +137,8 @@ public class Preselector {
                 pX = x+f[0];
                 pY = y+f[1];
                 if(pX > 0 && pX < 23 && pY >= 0 && pY < 24){
-                    if(board.getField(pX,pY).getFieldColor() == Jinx.FieldColor.BLACK){
+                    if((board.getField(pX,pY).getFieldColor() == black ||
+                            board.getField(pX,pY).getFieldColor() == vertLightColor)){
                         if(!result.contains(board.getField(pX,pY))){
                                 result.add(board.getField(pX,pY));
                         }
@@ -145,7 +153,8 @@ public class Preselector {
                 pX = x+f[0];
                 pY = y+f[1];
                 if(pX > 0 && pX < 23 && pY >= 0 && pY < 24){
-                    if(board.getField(pX,pY).getFieldColor() == Jinx.FieldColor.BLACK){
+                    if((board.getField(pX,pY).getFieldColor() == black ||
+                            board.getField(pX,pY).getFieldColor() == vertLightColor)){
                         if(!result.contains(board.getField(pX,pY))){
                                 result.add(board.getField(pX,pY));
                         }
@@ -156,7 +165,7 @@ public class Preselector {
             //add fields from start and end of notCurrentPlayer
             if(notCurrentPlayerMin.getX() - 4 > 0){
                 help = board.getField(notCurrentPlayerMin.getX() - 4, notCurrentPlayerMin.getY());
-                if(help.getFieldColor() == Jinx.FieldColor.BLACK){
+                if((help.getFieldColor() == black || help.getFieldColor() == vertLightColor)){
                     if(!result.contains(help)){
                         result.add(help);
                     }
@@ -164,7 +173,7 @@ public class Preselector {
             }
             if(notCurrentPlayerMax.getX() + 4 < 23){
                 help = board.getField(notCurrentPlayerMax.getX() + 4, notCurrentPlayerMax.getY());
-                if(help.getFieldColor() == Jinx.FieldColor.BLACK){
+                if((help.getFieldColor() == black || help.getFieldColor() == vertLightColor)){
                     if(!result.contains(help)){
                         result.add(help);
                     }
@@ -177,10 +186,14 @@ public class Preselector {
                 graphsByCurrentPlayer = board.graphsByOpponent;
                 notCurrentPlayerMax = board.graphsByJinx.get(0).getMaxYField();
                 notCurrentPlayerMin = board.graphsByJinx.get(0).getMinYField();
+                vertLightColor = FieldColor.LIGHT_JINX;
+                horLightColor = FieldColor.LIGHT_OPPONENT;
             }else{
                 graphsByCurrentPlayer = board.graphsByJinx;
                 notCurrentPlayerMax = board.graphsByOpponent.get(0).getMaxYField();
                 notCurrentPlayerMin = board.graphsByOpponent.get(0).getMinYField();
+                vertLightColor = FieldColor.LIGHT_OPPONENT;
+                horLightColor = FieldColor.LIGHT_JINX;
             }
 
             final int[][] goodFieldsFromOwnMinX = {                    
@@ -210,11 +223,11 @@ public class Preselector {
             final int[][] goodFieldsReactToOpponentMove = {
                                             { 0,-4},
                         {-3, -3},                                   { 3,-3},
-                                   {-1,-2},          { 1,-2},
+                                   {-1,-2}, { 0,-2}, { 1,-2},
                                    {-1,-1}, { 0,-1}, { 1,-1}, 
                                    {-1, 0},          { 1, 0},
                                    {-1, 1}, { 0, 1}, { 1, 1},
-                                   {-1, 2},          { 1, 2},
+                                   {-1, 2}, { 0, 2}, { 1, 2},
                         {-3, 3},                                    { 3, 3},
                                             { 0, 4}
             };
@@ -226,14 +239,14 @@ public class Preselector {
                 if(g.getMinXField().getX() - 2 >= 0){
                     if(g.getMinXField().getY() - 1 > 0){
                         help = board.getField(g.getMinXField().getX()-2, g.getMinXField().getY()-1);
-                        if(help.getFieldColor() == Jinx.FieldColor.BLACK
+                        if((help.getFieldColor() == black || help.getFieldColor() == horLightColor)
                                 && !result.contains(help)){
                             result.add(help);
                         }
                     }
                     if(g.getMinXField().getY() + 1 < 23){
                         help = board.getField(g.getMinXField().getX()-2, g.getMinXField().getY()+1);
-                        if(help.getFieldColor() == Jinx.FieldColor.BLACK
+                        if((help.getFieldColor() == black || help.getFieldColor() == horLightColor)
                                 && !result.contains(help)){
                             result.add(help);
                         }
@@ -243,14 +256,14 @@ public class Preselector {
                 if(g.getMaxXField().getX() + 2 <= 23){
                     if(g.getMaxXField().getY() - 1 > 0){
                         help = board.getField(g.getMaxXField().getX()+2, g.getMaxXField().getY()-1);
-                        if(help.getFieldColor() == Jinx.FieldColor.BLACK
+                        if((help.getFieldColor() == black || help.getFieldColor() == horLightColor)
                                 && !result.contains(help)){
                             result.add(help);
                         }
                     }
                     if(g.getMaxXField().getY() + 1 < 23){
                         help = board.getField(g.getMaxXField().getX()+2, g.getMaxXField().getY()+1);
-                        if(help.getFieldColor() == Jinx.FieldColor.BLACK
+                        if((help.getFieldColor() == black || help.getFieldColor() == horLightColor)
                                 && !result.contains(help)){
                             result.add(help);
                         }
@@ -266,7 +279,8 @@ public class Preselector {
                 pX = x+f[0];
                 pY = y+f[1];
                 if(pX >= 0 && pX < 24 && pY > 0 && pY < 23){
-                    if(board.getField(pX,pY).getFieldColor() == Jinx.FieldColor.BLACK){
+                    if((board.getField(pX,pY).getFieldColor() == black ||
+                            board.getField(pX,pY).getFieldColor() == horLightColor)){
                         if(!result.contains(board.getField(pX,pY))){
                                 result.add(board.getField(pX,pY));
                         }
@@ -280,7 +294,8 @@ public class Preselector {
                 pX = x+f[0];
                 pY = y+f[1];
                 if(pX >= 0 && pX < 24 && pY > 0 && pY < 23){
-                    if(board.getField(pX,pY).getFieldColor() == Jinx.FieldColor.BLACK){
+                    if((board.getField(pX,pY).getFieldColor() == black ||
+                            board.getField(pX,pY).getFieldColor() == horLightColor)){
                         if(!result.contains(board.getField(pX,pY))){
                                 result.add(board.getField(pX,pY));
                         }
@@ -295,7 +310,8 @@ public class Preselector {
                 pX = x+f[0];
                 pY = y+f[1];
                 if(pX >= 0 && pX < 24 && pY > 0 && pY < 23){
-                    if(board.getField(pX,pY).getFieldColor() == Jinx.FieldColor.BLACK){
+                    if((board.getField(pX,pY).getFieldColor() == black ||
+                            board.getField(pX,pY).getFieldColor() == horLightColor)){
                         if(!result.contains(board.getField(pX,pY))){
                                 result.add(board.getField(pX,pY));
                         }
@@ -306,7 +322,7 @@ public class Preselector {
             //add fields from start and end of notCurrentPlayer (vertical)
             if(notCurrentPlayerMin.getY() - 4 > 0){
                 help = board.getField(notCurrentPlayerMin.getX(), notCurrentPlayerMin.getY() - 4);
-                if(help.getFieldColor() == Jinx.FieldColor.BLACK){
+                if((help.getFieldColor() == black || help.getFieldColor() == horLightColor)){
                     if(!result.contains(help)){
                         result.add(help);
                     }
@@ -314,7 +330,7 @@ public class Preselector {
             }
             if(notCurrentPlayerMax.getY() + 4 < 23){
                 help = board.getField(notCurrentPlayerMax.getX(), notCurrentPlayerMax.getY() + 4);
-                if(help.getFieldColor() == Jinx.FieldColor.BLACK){
+                if((help.getFieldColor() == black || help.getFieldColor() == horLightColor)){
                     if(!result.contains(help)){
                         result.add(help);
                     }

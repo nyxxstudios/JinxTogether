@@ -15,6 +15,10 @@ public class Board {
     //set in updateMove and undoMove, read in evaluateCurrentConfliczone
     boolean isJinxTurn = Jinx.jinxIsPlayingVertical;
     
+    //is needed in undoMove, defined in constructor
+    FieldColor vertLightColor;
+    FieldColor horLightColor;
+    
     //graphs by jinx sorted by points (first graph has most)
     ArrayList<Graph> graphsByJinx = new ArrayList<>();
     //graphs by opponent sorted by points (first graph has most)
@@ -24,6 +28,13 @@ public class Board {
             initFields(gameStateAtBeginning);
             blackField = new Field(-1,-1);
             blackField.setFieldColor(FieldColor.BLACK);
+            if(Jinx.jinxIsPlayingVertical){
+                vertLightColor = FieldColor.LIGHT_JINX;
+                horLightColor = FieldColor.LIGHT_OPPONENT;
+            }else{
+                vertLightColor = FieldColor.LIGHT_OPPONENT;
+                horLightColor = FieldColor.LIGHT_JINX;
+            }
     }
 
     public Field getField(int x, int y){
@@ -126,8 +137,16 @@ public class Board {
         
             ArrayList<Graph> graphsByCurrentPlayer = isJinxMove?graphsByJinx:graphsByOpponent;
             
-            //NOT ALWAYS BLACK (BORDER l. initBoard())!
-            move.setFieldColor(FieldColor.BLACK);
+            //reset field color
+            if(move.getX() == 0 || move.getX() == 23){
+                move.setFieldColor(horLightColor);
+                
+            }else if(move.getY() == 0 || move.getY() == 23){
+                move.setFieldColor(vertLightColor);
+                
+            }else{
+                move.setFieldColor(FieldColor.BLACK);
+            }
 
             //recalculate graphs
             //if the field had at least 1 connection
@@ -494,8 +513,22 @@ public class Board {
             }
 
 
-            //EVERY BORDER FIELD BY THE OPPONENT IS GREEN AND EVERY 
-            //BORDER FIELD BY JINX IS BLACK WHITH THIS METHOD
+            //Set LIGHT_JINX and LIGHT_OPPONENT (border) fields
+            if(Jinx.jinxIsPlayingVertical){
+                for(int i=1; i<= 22; i++){
+                    fields[i][0].setFieldColor(FieldColor.LIGHT_JINX);
+                    fields[i][23].setFieldColor(FieldColor.LIGHT_JINX);
+                    fields[0][i].setFieldColor(FieldColor.LIGHT_OPPONENT);
+                    fields[23][i].setFieldColor(FieldColor.LIGHT_OPPONENT);
+                }
+            }else{
+                for(int i=1; i<= 22; i++){
+                    fields[i][0].setFieldColor(FieldColor.LIGHT_OPPONENT);
+                    fields[i][23].setFieldColor(FieldColor.LIGHT_OPPONENT);
+                    fields[0][i].setFieldColor(FieldColor.LIGHT_JINX);
+                    fields[23][i].setFieldColor(FieldColor.LIGHT_JINX);
+                }
+            }
     }
         
     int getNumberOfSetFields() {
