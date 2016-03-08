@@ -116,6 +116,7 @@ public class Jinx {
             }
             
             System.out.println("CONFLICTZONEVALUE: " + board.evaluateConflict());
+            System.out.println("Average number of preselected moves: " + Preselector.averageNumberOfMoves());
             lastMoveByJinx = board.getField(selection.getX(), selection.getY());
             return selection;
 	}

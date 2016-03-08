@@ -13,6 +13,14 @@ import java.util.ArrayList;
  */
 public class Preselector {
     
+    //to calc average number of moves returned
+    private static float numberOfTotalMovesReturned;
+    private static int numberOfCalls = 0;
+    
+    public static float averageNumberOfMoves(){
+        return numberOfTotalMovesReturned/numberOfCalls;
+    }
+    
     //important part of the Jinx AI. Returns all 'good' moves
     //that can be done (returning all possible moves would be too much
     //to calculate in a useful depth)
@@ -162,8 +170,6 @@ public class Preselector {
                     }
                 }
             }
-
-            return result;
             
         }else{//preselect for horizontal player
             
@@ -314,9 +320,10 @@ public class Preselector {
                     }
                 }
             }
-
-            return result;
         }
+        numberOfTotalMovesReturned += result.size();
+        numberOfCalls++;
+        return result;
     }
     
 }

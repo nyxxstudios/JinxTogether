@@ -1107,11 +1107,11 @@ public class Evaluator {
     
     private static float calcPointsWithLine(int index, Field f, boolean isVert){
         if(isVert){
-            //calc intersection point with x axis -> 'Nullstelle'
-            return (mV[index] * f.getX() - f.getY()) / mV[index];
+            //calc intersection point with g(x) = 1 ('x axis plus 1 -> nearly 'Nullstelle')
+            return (1 + mV[index] * f.getX() - f.getY()) / mV[index];
         }else{
-            //calc intersection point with y axis -> 'Y-Achsenabschnitt'
-            return f.getY() - mH[index] * f.getX();
+            //calc intersection point with y axis + 1 (x = 1) -> 'Y-Achsenabschnitt' + m
+            return f.getY() - mH[index] * f.getX() + mH[index] ;
         }
     }
     
