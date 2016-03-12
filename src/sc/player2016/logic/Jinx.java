@@ -12,6 +12,8 @@ public class Jinx {
 	
 	public static boolean jinxIsPlayingVertical;
 	
+        public static int roundNo = 0;
+        
 	//Hopefully not necessary in final version...
 	private static final Random rand = new SecureRandom();
 	
@@ -35,8 +37,10 @@ public class Jinx {
 	 * */
 	public static Move findMove(GameState gameState){
             
+            roundNo++;
+            
             System.out.println("Round " + gameState.getRound() + "  ----------------------");
-
+            
             Field f = new Field(0,0);
             Field g = new Field(1,1);
             Field h = f;

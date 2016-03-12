@@ -17,6 +17,7 @@ public class Evaluator {
     private static final float MAX_VALUE = 100;
     private static float factor; 
     private static Board board;
+    private static float help;
     
     //is called once at beginning in Jinx.findMove()
     public static void setFactor() {
@@ -32,42 +33,20 @@ public class Evaluator {
             //Evaluates the current state of the board.
             //The higher the result is, the better is the situation for jinx
             float result = 0;
-
-
-            //First (since 0.01) evaluation method: points by jinx/points by opponent
-//            if(pointsByOpponent != 0){
-//                    result = pointsByJinx/(float)(pointsByOpponent);
-////                        result = -pointsByOpponent;
-//            }else{
-//                    result = pointsByJinx*1.1f;
-//            }
-              result = pointsByJinx - pointsByOpponent;
-//            result += 0.1 * evaluateCurrentConflictzone(startOfJinxGraph, endOfJinxGraph, 
-//                    startOfOpponentGraph, endOfOpponentGraph, isVertsMove);
-//            if (evaluateCurrentConflictzone(startOfJinxGraph, endOfJinxGraph, 
-//                    startOfOpponentGraph, endOfOpponentGraph, isVertsMove) < 0){
-//                result -= 10;
-//            }
-            //so 16:8 is worse than 17:9 
-//            if(pointsByJinx > pointsByOpponent){
-//                result = 1.1f * pointsByJinx - pointsByOpponent;
-//                
-//            }else if(pointsByJinx == pointsByOpponent){
-//                result = pointsByJinx - pointsByOpponent;
-//                
-//            }else{
-//                result = pointsByJinx - 1.1f * pointsByOpponent;
-//            }
             
+            float weightPoints = weigthOfPoints(Jinx.roundNo);
             
-//            result += 0.1 * evaluateCurrentConflictzone(graphsByVert, graphsByHor, isVertsMove);
-              if(isVertsMove){
-                result += evaluateVertsConflictzones(graphsByVert, graphsByHor, true);
-                
-              }else{
-                  result += evaluateHorsConflictzones(graphsByVert, graphsByHor, true);
-              }
-//            
+            result = weightPoints * (pointsByJinx - pointsByOpponent);
+            
+            if(isVertsMove){
+                result += (1-weightPoints) * evaluateVertsConflictzones(graphsByVert, graphsByHor, true);
+//                result += (evaluateVertsConflictzones(graphsByVert, graphsByHor, true) + 
+//                        evaluateHorsConflictzones(graphsByVert, graphsByHor, true)) / 2;
+            }else{
+//                result += (evaluateVertsConflictzones(graphsByVert, graphsByHor, true) +
+//                        evaluateHorsConflictzones(graphsByVert, graphsByHor, true)) / 2;
+                result += (1-weightPoints) * evaluateHorsConflictzones(graphsByVert, graphsByHor, true);
+            }
             
             /*v1,h1,v2,h2 the higher the better for horizontal player:
              => the smaller h the better
@@ -87,6 +66,29 @@ public class Evaluator {
 //			result = 1.1f;
 //		}
             return result;
+    }
+    
+    
+    private static float a = 0;
+    private static float mid = 18;
+    private static float up = 26;
+    private static int x;
+    private static float result;
+    public static float weigthOfPoints(int round){
+        //returns number between 0.8 (round==1) and 0.2 (round >= 25)
+        x = round;
+        if(x <= 1){
+            result = 0;
+            
+        }else if(x <= mid){
+            result =  x*x*x*x*x/(2*mid*mid*mid*mid*mid);
+            
+        }else if(x <= up){
+            result = 1 - (up-x)*(up-x)/(2*(up-mid)*(up-mid));
+        }else{
+            result = 1;
+        }
+        return 0.2f + 0.6f*result;
     }
 
     public static float evaluateVertsConflictzones(ArrayList<Graph> graphsByVert,
