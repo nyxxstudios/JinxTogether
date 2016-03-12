@@ -14,6 +14,8 @@ public class Jinx {
 	
         public static int roundNo = 0;
         
+        public  static float weightPoints;
+        
 	//Hopefully not necessary in final version...
 	private static final Random rand = new SecureRandom();
 	
@@ -38,6 +40,10 @@ public class Jinx {
 	public static Move findMove(GameState gameState){
             
             roundNo++;
+            
+            weightPoints = Evaluator.weigthOfPoints(roundNo);
+            System.out.println("weightOfPoints: " + weightPoints);
+            System.out.println();
             
             System.out.println("Round " + gameState.getRound() + "  ----------------------");
             

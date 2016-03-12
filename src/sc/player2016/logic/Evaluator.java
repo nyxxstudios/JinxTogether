@@ -34,18 +34,16 @@ public class Evaluator {
             //The higher the result is, the better is the situation for jinx
             float result = 0;
             
-            float weightPoints = weigthOfPoints(Jinx.roundNo);
-            
-            result = weightPoints * (pointsByJinx - pointsByOpponent);
+            result = Jinx.weightPoints * (pointsByJinx - pointsByOpponent);
             
             if(isVertsMove){
-                result += (1-weightPoints) * evaluateVertsConflictzones(graphsByVert, graphsByHor, true);
+                result += (1-Jinx.weightPoints) * evaluateVertsConflictzones(graphsByVert, graphsByHor, true);
 //                result += (evaluateVertsConflictzones(graphsByVert, graphsByHor, true) + 
 //                        evaluateHorsConflictzones(graphsByVert, graphsByHor, true)) / 2;
             }else{
 //                result += (evaluateVertsConflictzones(graphsByVert, graphsByHor, true) +
 //                        evaluateHorsConflictzones(graphsByVert, graphsByHor, true)) / 2;
-                result += (1-weightPoints) * evaluateHorsConflictzones(graphsByVert, graphsByHor, true);
+                result += (1-Jinx.weightPoints) * evaluateHorsConflictzones(graphsByVert, graphsByHor, true);
             }
             
             /*v1,h1,v2,h2 the higher the better for horizontal player:
