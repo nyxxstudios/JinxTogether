@@ -188,17 +188,17 @@ public class Jinx {
                     preselectedMoves = cloneList(sortedMoves);
                     
                     
-                    System.out.println("Possible moves: " + preselectedMoves);
-                    System.out.println("        Values: " + valuesOfSortedMoves);
-                    
-                    System.out.println("Best move: " + result + " with " + maxValue);
-                    System.out.println("--------end of depth = " + depth + " ------");
-                    System.out.println();
+//                    System.out.println("Possible moves: " + preselectedMoves);
+//                    System.out.println("        Values: " + valuesOfSortedMoves);
+//                    
+//                    System.out.println("Best move: " + result + " with " + maxValue);
+//                    System.out.println("--------end of depth = " + depth + " ------");
+//                    System.out.println();
                     
                     
                 }//end of 'increase depth by 1 loop'    
                 System.out.println("Zeit: " + (System.currentTimeMillis() - startTime)/(float)1000);
-                System.out.println("Number of cutoffs = " + numberOfCutoffs);
+//                System.out.println("Number of cutoffs = " + numberOfCutoffs);
                 //timeIsOver => return best move found
                 return result;
 	}

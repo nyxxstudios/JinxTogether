@@ -34,7 +34,7 @@ public class Evaluator {
             //The higher the result is, the better is the situation for jinx
             float result;
             
-            result = (pointsByJinx - pointsByOpponent);//Jinx.weightPoints * (pointsByJinx - pointsByOpponent);
+            result = Jinx.weightPoints * (pointsByJinx - pointsByOpponent);
             
             //evaluate conflictzone (important especially in the beginning of the game,
             //not at the end, l. weigthOfPoints())
@@ -42,7 +42,7 @@ public class Evaluator {
             //if the graph is more centered (in both dimensions)
             
             if(isVertsMove){
-                result += evaluateVertsConflictzones(graphsByVert, graphsByHor, true);//(1-Jinx.weightPoints) * evaluateVertsConflictzones(graphsByVert, graphsByHor, true);
+                result += (1-Jinx.weightPoints) * evaluateVertsConflictzones(graphsByVert, graphsByHor, true);
 //                result += (1-Jinx.weightPoints) * (evaluateVertsConflictzones(graphsByVert, graphsByHor, true) + 
 //                        evaluateHorsConflictzones(graphsByVert, graphsByHor, false)) / 2;
                 
@@ -55,7 +55,7 @@ public class Evaluator {
             }else{
 //                result += (1-Jinx.weightPoints) * (evaluateVertsConflictzones(graphsByVert, graphsByHor, false) +
 //                        evaluateHorsConflictzones(graphsByVert, graphsByHor, true)) / 2;
-                result += evaluateHorsConflictzones(graphsByVert, graphsByHor, true);//(1-Jinx.weightPoints) * evaluateHorsConflictzones(graphsByVert, graphsByHor, true);
+                result += (1-Jinx.weightPoints) * evaluateHorsConflictzones(graphsByVert, graphsByHor, true);
                 
                 //dimension centering: x: average of minX and maxX ; y: minX and maxX seperately
                 result -= 0.01f * Math.abs(11.5f - 
