@@ -96,8 +96,6 @@ public class Jinx {
             //update board (add move (and sometimes connection) by jinx)
             board.updateBoard(board.getField(selection.getX(), selection.getY()), true);
                  
-            
-            System.out.println(board.getNumberOfSetFields() + " stones set");
             System.out.println("graphsByJinx = " + board.graphsByJinx + 
                     "\ngraphsByOpponent = " + board.graphsByOpponent);
             
@@ -106,17 +104,9 @@ public class Jinx {
                         board.evaluateBoardPosition());
                     
                 if(jinxIsPlayingVertical){
-                    System.out.println("evaluationOfConflictzone = " +
-                            Evaluator.evaluateCurrentConflictzone(
-                                    board.graphsByJinx,
-                                    board.graphsByOpponent, board.isJinxTurn));
                     System.out.println("startJinx = " + board.graphsByJinx.get(0).getMinYField() + "  endJinx = " + board.graphsByJinx.get(0).getMaxYField());	
                     System.out.println("startOpponent = " + board.graphsByOpponent.get(0).getMinXField() + "  endOpponent = " + board.graphsByOpponent.get(0).getMaxXField());
                 }else{
-                    System.out.println("evaluationOfConflictzone = " +
-                            Evaluator.evaluateCurrentConflictzone(
-                                    board.graphsByOpponent,
-                                    board.graphsByJinx, !board.isJinxTurn));
                     System.out.println("startJinx = " + board.graphsByJinx.get(0).getMinXField() + "  endJinx = " + board.graphsByJinx.get(0).getMaxXField());	
                     System.out.println("startOpponent = " + board.graphsByOpponent.get(0).getMinYField() + "  endOpponent = " + board.graphsByOpponent.get(0).getMaxYField());
                 }
@@ -198,16 +188,17 @@ public class Jinx {
                     preselectedMoves = cloneList(sortedMoves);
                     
                     
-//                    System.out.println("Possible moves: " + preselectedMoves);
-//                    
-//                    System.out.println("Best move: " + result + " with " + maxValue);
-//                    System.out.println("--------end of depth = " + depth + " ------");
-//                    System.out.println();
+                    System.out.println("Possible moves: " + preselectedMoves);
+                    System.out.println("        Values: " + valuesOfSortedMoves);
+                    
+                    System.out.println("Best move: " + result + " with " + maxValue);
+                    System.out.println("--------end of depth = " + depth + " ------");
+                    System.out.println();
                     
                     
                 }//end of 'increase depth by 1 loop'    
                 System.out.println("Zeit: " + (System.currentTimeMillis() - startTime)/(float)1000);
-//                System.out.println("Number of cutoffs = " + numberOfCutoffs);
+                System.out.println("Number of cutoffs = " + numberOfCutoffs);
                 //timeIsOver => return best move found
                 return result;
 	}

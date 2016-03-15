@@ -56,11 +56,11 @@ public class Field{
 	}
 	
 	public boolean isConnectedWith(int fieldX, int fieldY){
-		for(Field f : connections){
-			if(f.x == fieldX && f.y == fieldY)
-				return true;
-		}
-		return false;
+            for(Field f : connections){
+                if(f.x == fieldX && f.y == fieldY)
+                    return true;
+            }
+            return false;
 	}
 	
 	public void setFieldColor(Jinx.FieldColor fieldColor){

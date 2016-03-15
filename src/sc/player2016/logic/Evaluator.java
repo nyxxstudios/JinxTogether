@@ -14,7 +14,7 @@ import sc.player2016.logic.Jinx.FieldColor;
  */
 public class Evaluator {
     private static final float TURN_ADVANTAGE = 2;
-    private static final float MAX_VALUE = 100;
+    private static final float MAX_VALUE = 20;
     private static float factor; 
     private static Board board;
     private static float help;
@@ -32,48 +32,50 @@ public class Evaluator {
             ArrayList<Graph> graphsByHor, boolean isVertsMove, int pointsByJinx, int pointsByOpponent){
             //Evaluates the current state of the board.
             //The higher the result is, the better is the situation for jinx
-            float result = 0;
+            float result;
             
-            result = Jinx.weightPoints * (pointsByJinx - pointsByOpponent);
+            result = (pointsByJinx - pointsByOpponent);//Jinx.weightPoints * (pointsByJinx - pointsByOpponent);
+            
+            //evaluate conflictzone (important especially in the beginning of the game,
+            //not at the end, l. weigthOfPoints())
+            //if points and conflictzone are equal, evaluate the situation better 
+            //if the graph is more centered (in both dimensions)
             
             if(isVertsMove){
-                result += (1-Jinx.weightPoints) * evaluateVertsConflictzones(graphsByVert, graphsByHor, true);
-//                result += (evaluateVertsConflictzones(graphsByVert, graphsByHor, true) + 
-//                        evaluateHorsConflictzones(graphsByVert, graphsByHor, true)) / 2;
+                result += evaluateVertsConflictzones(graphsByVert, graphsByHor, true);//(1-Jinx.weightPoints) * evaluateVertsConflictzones(graphsByVert, graphsByHor, true);
+//                result += (1-Jinx.weightPoints) * (evaluateVertsConflictzones(graphsByVert, graphsByHor, true) + 
+//                        evaluateHorsConflictzones(graphsByVert, graphsByHor, false)) / 2;
+                
+                //dimension centering: x: minY and maxY seperately; y: average of both
+//                result -= 0.01f * Math.abs(11.5f - graphsByVert.get(0).getMinYField().getX());
+//                result -= 0.01f * Math.abs(11.5f - graphsByVert.get(0).getMaxYField().getX());
+//                result -= 0.01f * Math.abs( 11.5f - 
+//                        ((graphsByVert.get(0).getMinYField().getY() +
+//                        graphsByVert.get(0).getMaxYField().getY()) / 2));
             }else{
-//                result += (evaluateVertsConflictzones(graphsByVert, graphsByHor, true) +
+//                result += (1-Jinx.weightPoints) * (evaluateVertsConflictzones(graphsByVert, graphsByHor, false) +
 //                        evaluateHorsConflictzones(graphsByVert, graphsByHor, true)) / 2;
-                result += (1-Jinx.weightPoints) * evaluateHorsConflictzones(graphsByVert, graphsByHor, true);
+                result += evaluateHorsConflictzones(graphsByVert, graphsByHor, true);//(1-Jinx.weightPoints) * evaluateHorsConflictzones(graphsByVert, graphsByHor, true);
+                
+                //dimension centering: x: average of minX and maxX ; y: minX and maxX seperately
+//                result -= 0.01f * Math.abs( 11.5f - 
+//                        ((graphsByHor.get(0).getMinXField().getX() +
+//                        graphsByHor.get(0).getMaxXField().getX()) / 2));
+//                result -= 0.01f * Math.abs(11.5f - graphsByHor.get(0).getMinXField().getY());
+//                result -= 0.01f * Math.abs(11.5f - graphsByHor.get(0).getMaxXField().getY());
             }
             
-            /*v1,h1,v2,h2 the higher the better for horizontal player:
-             => the smaller h the better
-             => the higher v the better
-             - v1, h1 are more important than v2 and h2
-            
-            version 1: (f * v1 + v2) / (f * h1 + h2)
-            version 2: v1 / h1
-               
-                
-            */
-            
-            
-//                if(pointsByOpponent != 0){
-//			result = 1/(float)(pointsByOpponent);
-//		}else{
-//			result = 1.1f;
-//		}
             return result;
     }
     
     
     private static float a = 0;
     private static float mid = 18;
-    private static float up = 26;
+    private static float up = 27;
     private static int x;
     private static float result;
     public static float weigthOfPoints(int round){
-        //returns number between 0.8 (round==1) and 0.2 (round >= 25)
+        //returns number between 0.2 (round==1) and 1 (round >= up)
         x = round;
         if(x <= 1){
             result = 0;
@@ -86,7 +88,7 @@ public class Evaluator {
         }else{
             result = 1;
         }
-        return 0.2f + 0.6f*result;
+        return 0.2f + 0.8f*result;
     }
 
     public static float evaluateVertsConflictzones(ArrayList<Graph> graphsByVert,
@@ -108,6 +110,8 @@ public class Evaluator {
 //            System.out.println("Graph " + g + "\nconflict: " + help);
             minConflictzone = Math.max(minConflictzone, help);
         }
+        minConflictzone = minConflictzone>=0?Math.min(minConflictzone, MAX_VALUE):
+                -1 * Math.min(Math.abs(minConflictzone), MAX_VALUE);
         return factor * minConflictzone;
     }
     
@@ -167,34 +171,46 @@ public class Evaluator {
                     if(fHMin.getY() < fVMin.getY() && 
                             fHMin.getX() + 1 == fVMin.getX()){
                         
-                         //conflict is in up&left corner
-                        Field pV = fVMin;
-                        Field pH = fHMin;
-                        if(!isVertsMove){
-                            //it is hors move, so swap pV and pH 
-                            //(reflect them by swapping x and y coordinates)
-                            Field f = pV;
-                            pV = new Field(pH.getY(), pH.getX());
-                            pH = new Field(f.getY(), f.getX());
+                        //check if g blocks vertMin in the middle of the graph 
+                        //(depth 6 problem; jinx waited for opponent to attack)
+                        if(!(fHMin.getY() == fVMin.getY() - 1 &&
+                                fHMin.isConnectedWith(fHMin.getX() + 1, fHMin.getY() + 2))){
+                            
+                            //conflict is in up&left corner
+                           Field pV = fVMin;
+                           Field pH = fHMin;
+                           if(!isVertsMove){
+                               //it is hors move, so swap pV and pH 
+                               //(reflect them by swapping x and y coordinates)
+                               Field f = pV;
+                               pV = new Field(pH.getY(), pH.getX());
+                               pH = new Field(f.getY(), f.getX());
+                           }
+                           help = evaluateConflictPoints(pV, pH);
+                           minYConflict = Math.min(minYConflict, help);
                         }
-                        help = evaluateConflictPoints(pV, pH);
-                        minYConflict = Math.min(minYConflict, help);
                         
                     }else if(fHMax.getY() < fVMin.getY() && 
                             fHMax.getX() - 1 == fVMin.getX()){
                         
-                         //conflict is in up&right corner
-                        Field pV = new Field(23 - fVMin.getX(), fVMin.getY());
-                        Field pH = new Field(23 - fHMax.getX(), fHMax.getY());
-                        if(!isVertsMove){
-                            //it is hors move, so swap pV and pH 
-                            //(reflect them by swapping x and y coordinates)
-                            Field f = pV;
-                            pV = new Field(pH.getY(), pH.getX());
-                            pH = new Field(f.getY(), f.getX());
+                        //check if g blocks vertMin in the middle of the graph 
+                        //(depth 6 problem; jinx waited for opponent to attack)
+                        if(!(fHMax.getY() == fVMin.getY() - 1 &&
+                                fHMax.isConnectedWith(fHMax.getX() - 1, fHMax.getY() + 2))){
+                            
+                            //conflict is in up&right corner
+                           Field pV = new Field(23 - fVMin.getX(), fVMin.getY());
+                           Field pH = new Field(23 - fHMax.getX(), fHMax.getY());
+                           if(!isVertsMove){
+                               //it is hors move, so swap pV and pH 
+                               //(reflect them by swapping x and y coordinates)
+                               Field f = pV;
+                               pV = new Field(pH.getY(), pH.getX());
+                               pH = new Field(f.getY(), f.getX());
+                           }
+                           help = evaluateConflictPoints(pV, pH);
+                           minYConflict = Math.min(minYConflict, help);
                         }
-                        help = evaluateConflictPoints(pV, pH);
-                        minYConflict = Math.min(minYConflict, help);
                     
                     }else{//usual case
                         minYConflict = -MAX_VALUE;
@@ -242,34 +258,45 @@ public class Evaluator {
                     if(fHMin.getY() > fVMax.getY() && 
                             fHMin.getX() + 1 == fVMax.getX()){
                         
-                       //conflict is in down&left corner
-                        Field pV = new Field(fVMax.getX(), 23 - fVMax.getY());
-                        Field pH = new Field(fHMin.getX(), 23 - fHMin.getY());
-                        if(!isVertsMove){
-                            //it is hors move, so swap pV and pH 
-                            //(reflect them by swapping x and y coordinates)
-                            Field f = pV;
-                            pV = new Field(pH.getY(), pH.getX());
-                            pH = new Field(f.getY(), f.getX());
+                        //check if g blocks vertMin in the middle of the graph 
+                        //(depth 6 problem; jinx waited for opponent to attack)
+                        if(!(fHMin.getY() == fVMax.getY() + 1 &&
+                                fHMin.isConnectedWith(fHMin.getX() + 1, fHMin.getY() - 2))){
+                
+                            //conflict is in down&left corner
+                            Field pV = new Field(fVMax.getX(), 23 - fVMax.getY());
+                            Field pH = new Field(fHMin.getX(), 23 - fHMin.getY());
+                            if(!isVertsMove){
+                                //it is hors move, so swap pV and pH 
+                                //(reflect them by swapping x and y coordinates)
+                                Field f = pV;
+                                pV = new Field(pH.getY(), pH.getX());
+                                pH = new Field(f.getY(), f.getX());
+                            }
+                            help = evaluateConflictPoints(pV, pH);
+                            maxYConflict = Math.min(maxYConflict, help);
                         }
-                        help = evaluateConflictPoints(pV, pH);
-                        maxYConflict = Math.min(maxYConflict, help);
-                        
                     }else if(fHMax.getY() > fVMax.getY() && 
                             fHMax.getX() - 1 == fVMax.getX()){
                         
-                        //conflict is in down&right corner
-                        Field pV = new Field(23 - fVMax.getX(), 23 - fVMax.getY());
-                        Field pH = new Field(23 - fHMax.getX(), 23 - fHMax.getY());
-                        if(!isVertsMove){
-                            //it is hors move, so swap pV and pH 
-                            //(reflect them by swapping x and y coordinates)
-                            Field f = pV;
-                            pV = new Field(pH.getY(), pH.getX());
-                            pH = new Field(f.getY(), f.getX());
+                        //check if g blocks vertMin in the middle of the graph 
+                        //(depth 6 problem; jinx waited for opponent to attack)
+                        if(!(fHMax.getY() == fVMax.getY() + 1 &&
+                                fHMax.isConnectedWith(fHMax.getX() - 1, fHMax.getY() - 2))){
+                            
+                            //conflict is in down&right corner
+                            Field pV = new Field(23 - fVMax.getX(), 23 - fVMax.getY());
+                            Field pH = new Field(23 - fHMax.getX(), 23 - fHMax.getY());
+                            if(!isVertsMove){
+                                //it is hors move, so swap pV and pH 
+                                //(reflect them by swapping x and y coordinates)
+                                Field f = pV;
+                                pV = new Field(pH.getY(), pH.getX());
+                                pH = new Field(f.getY(), f.getX());
+                            }
+                            help = evaluateConflictPoints(pV, pH);
+                            maxYConflict = Math.min(maxYConflict, help);
                         }
-                        help = evaluateConflictPoints(pV, pH);
-                        maxYConflict = Math.min(maxYConflict, help);
                     
                     }else{//usual case
                         maxYConflict = -MAX_VALUE;
@@ -299,6 +326,8 @@ public class Evaluator {
 //            System.out.println("Graph " + g + "\nconflict: " + help);
             minConflictzone = Math.max(minConflictzone, help);
         }
+        minConflictzone = minConflictzone>=0?Math.min(Math.abs(minConflictzone), MAX_VALUE):
+                -1 * Math.min(Math.abs(minConflictzone), MAX_VALUE);
         return -1 * factor * minConflictzone;
     }
 
@@ -358,34 +387,48 @@ public class Evaluator {
                     //check if conflictsituation could be won, although g blocks
                     if(fVMin.getX() < fHMin.getX() && 
                             fVMin.getY() + 1 == fHMin.getY()){
-                        //conflict is in up&left corner
-                        Field pV = fVMin;
-                        Field pH = fHMin;
-                        if(isHorsMove){
-                            //(it is hors move, so swap pV and pH 
-                            //(reflect them by swapping x and y coordinates))
-                            Field f = pV;
-                            pV = new Field(pH.getY(), pH.getX());
-                            pH = new Field(f.getY(), f.getX());
+                        
+                        //check if g blocks horMin in the middle of the graph 
+                        //(depth 6 problem; jinx waited for opponent to attack)
+                        if(!(fVMin.getX() == fHMin.getX() - 1 &&
+                                fVMin.isConnectedWith(fVMin.getX() + 2, fVMin.getY() + 1))){
+                            
+                            //conflict is in up&left corner
+                            Field pV = fVMin;
+                            Field pH = fHMin;
+                            if(isHorsMove){
+                                //(it is hors move, so swap pV and pH 
+                                //(reflect them by swapping x and y coordinates))
+                                Field f = pV;
+                                pV = new Field(pH.getY(), pH.getX());
+                                pH = new Field(f.getY(), f.getX());
+                            }
+                            help = evaluateConflictPoints(pV, pH);
+                            minXConflict = Math.min(minXConflict, help); 
                         }
-                        help = evaluateConflictPoints(pV, pH);
-                        minXConflict = Math.min(minXConflict, help);
                         
                     }else if(fVMax.getX() < fHMin.getX() && 
                             fVMax.getY() - 1 == fHMin.getY()){
                         
-                        //conflict is in down&left corner
-                        Field pV = new Field(fVMax.getX(), 23 - fVMax.getY());
-                        Field pH = new Field(fHMin.getX(), 23 - fHMin.getY());
-                        if(isHorsMove){
-                            //(it is hors move, so swap pV and pH 
-                            //(reflect them by swapping x and y coordinates))
-                            Field f = pV;
-                            pV = new Field(pH.getY(), pH.getX());
-                            pH = new Field(f.getY(), f.getX());
+                        //check if g blocks horMin in the middle of the graph 
+                        //(depth 6 problem; jinx waited for opponent to attack)
+                        if(!(fVMax.getX() == fHMin.getX() - 1 &&
+                             fVMax.isConnectedWith(fVMax.getX() + 2, fVMax.getY() - 1))){
+                            
+                            //conflict is in down&left corner
+                            Field pV = new Field(fVMax.getX(), 23 - fVMax.getY());
+                            Field pH = new Field(fHMin.getX(), 23 - fHMin.getY());
+                            if(isHorsMove){
+                                //(it is hors move, so swap pV and pH 
+                                //(reflect them by swapping x and y coordinates))
+                                Field f = pV;
+                                pV = new Field(pH.getY(), pH.getX());
+                                pH = new Field(f.getY(), f.getX());
+                            }
+                            help = evaluateConflictPoints(pV, pH);
+                            minXConflict = Math.min(minXConflict, help);
                         }
-                        help = evaluateConflictPoints(pV, pH);
-                        minXConflict = Math.min(minXConflict, help);
+                        
                     
                     }else{//usual case
                         minXConflict = -MAX_VALUE;
@@ -433,34 +476,47 @@ public class Evaluator {
                     if(fVMin.getX() > fHMax.getX() && 
                             fVMin.getY() + 1 == fHMax.getY()){
                         
-                       //conflict is in up&right corner
-                        Field pV = new Field(23 - fVMin.getX(), fVMin.getY());
-                        Field pH = new Field(23 - fHMax.getX(), fHMax.getY());
-                        if(isHorsMove){
-                            //(it is hors move, so swap pV and pH 
-                            //(reflect them by swapping x and y coordinates))
-                            Field f = pV;
-                            pV = new Field(pH.getY(), pH.getX());
-                            pH = new Field(f.getY(), f.getX());
+                        //check if g blocks horMax in the middle of the graph 
+                        //(depth 6 problem; jinx waited for opponent to attack)
+                        if(!(fVMin.getX() == fHMax.getX() + 1 &&
+                             fVMin.isConnectedWith(fVMin.getX() - 2, fVMin.getY() + 1))){
+                            
+                            //conflict is in up&right corner
+                            Field pV = new Field(23 - fVMin.getX(), fVMin.getY());
+                            Field pH = new Field(23 - fHMax.getX(), fHMax.getY());
+                            if(isHorsMove){
+                                //(it is hors move, so swap pV and pH 
+                                //(reflect them by swapping x and y coordinates))
+                                Field f = pV;
+                                pV = new Field(pH.getY(), pH.getX());
+                                pH = new Field(f.getY(), f.getX());
+                            }
+                            help = evaluateConflictPoints(pV, pH);
+                            maxXConflict = Math.min(maxXConflict, help);
                         }
-                        help = evaluateConflictPoints(pV, pH);
-                        maxXConflict = Math.min(maxXConflict, help);
+                       
                         
                     }else if(fVMax.getX() > fHMax.getX() && 
                             fVMax.getY() - 1 == fHMax.getY()){
                         
-                        //conflict is in down&right corner
-                        Field pV = new Field(23 - fVMax.getX(), 23 - fVMax.getY());
-                        Field pH = new Field(23 - fHMax.getX(), 23 - fHMax.getY());
-                        if(isHorsMove){
-                            //(it is hors move, so swap pV and pH 
-                            //(reflect them by swapping x and y coordinates))
-                            Field f = pV;
-                            pV = new Field(pH.getY(), pH.getX());
-                            pH = new Field(f.getY(), f.getX());
+                                                //check if g blocks horMax in the middle of the graph 
+                        //(depth 6 problem; jinx waited for opponent to attack)
+                        if(!(fVMax.getX() == fHMax.getX() + 1 &&
+                             fVMax.isConnectedWith(fVMax.getX() - 2, fVMax.getY() - 1))){
+                            
+                            //conflict is in down&right corner
+                            Field pV = new Field(23 - fVMax.getX(), 23 - fVMax.getY());
+                            Field pH = new Field(23 - fHMax.getX(), 23 - fHMax.getY());
+                            if(isHorsMove){
+                                //(it is hors move, so swap pV and pH 
+                                //(reflect them by swapping x and y coordinates))
+                                Field f = pV;
+                                pV = new Field(pH.getY(), pH.getX());
+                                pH = new Field(f.getY(), f.getX());
+                            }
+                            help = evaluateConflictPoints(pV, pH);
+                            maxXConflict = Math.min(maxXConflict, help);
                         }
-                        help = evaluateConflictPoints(pV, pH);
-                        maxXConflict = Math.min(maxXConflict, help);
                     
                     }else{//usual case
                         minXConflict = -MAX_VALUE;
