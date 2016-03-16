@@ -28,7 +28,7 @@ public class Preselector {
     public static ArrayList<Field> preselectMoves(Field lastMove, boolean isVertical, Board board){
         ArrayList<Field> result = new ArrayList<>();
         Field notCurrentPlayerMin, notCurrentPlayerMax, help;//notCurrentPlayer (can be jinx!)
-        ArrayList<Graph> graphsByCurrentPlayer;
+        ArrayList<Graph> graphsByCurrentPlayer, graphsByNotCurrentPlayer;
         int x, y, pX, pY;
         FieldColor vertLightColor, horLightColor, black = FieldColor.BLACK;
         
@@ -36,12 +36,14 @@ public class Preselector {
             
             if(Jinx.jinxIsPlayingVertical){
                 graphsByCurrentPlayer = board.graphsByJinx;
+                graphsByNotCurrentPlayer = board.graphsByOpponent;
                 notCurrentPlayerMax = board.graphsByOpponent.get(0).getMaxXField();
                 notCurrentPlayerMin = board.graphsByOpponent.get(0).getMinXField();
                 vertLightColor = FieldColor.LIGHT_JINX;
                 horLightColor = FieldColor.LIGHT_OPPONENT;
             }else{
                 graphsByCurrentPlayer = board.graphsByOpponent;
+                graphsByNotCurrentPlayer = board.graphsByJinx;
                 notCurrentPlayerMax = board.graphsByJinx.get(0).getMaxXField();
                 notCurrentPlayerMin = board.graphsByJinx.get(0).getMinXField();
                 vertLightColor = FieldColor.LIGHT_OPPONENT;
@@ -162,20 +164,24 @@ public class Preselector {
                 }
             }   
             
-            //add fields from start and end of notCurrentPlayer
-            if(notCurrentPlayerMin.getX() - 4 > 0){
-                help = board.getField(notCurrentPlayerMin.getX() - 4, notCurrentPlayerMin.getY());
-                if((help.getFieldColor() == black || help.getFieldColor() == vertLightColor)){
-                    if(!result.contains(help)){
-                        result.add(help);
+            //add (maximum) 2 fields for each graph by opponent (endfields +- 4)
+            for(Graph g : graphsByNotCurrentPlayer){
+            
+                //add fields from start and end of notCurrentPlayer
+                if(g.getMinXField().getX() - 4 > 0){
+                    help = board.getField(g.getMinXField().getX() - 4, g.getMinXField().getY());
+                    if((help.getFieldColor() == black || help.getFieldColor() == vertLightColor)){
+                        if(!result.contains(help)){
+                            result.add(help);
+                        }
                     }
                 }
-            }
-            if(notCurrentPlayerMax.getX() + 4 < 23){
-                help = board.getField(notCurrentPlayerMax.getX() + 4, notCurrentPlayerMax.getY());
-                if((help.getFieldColor() == black || help.getFieldColor() == vertLightColor)){
-                    if(!result.contains(help)){
-                        result.add(help);
+                if(g.getMaxXField().getX() + 4 < 23){
+                    help = board.getField(g.getMaxXField().getX() + 4, g.getMaxXField().getY());
+                    if((help.getFieldColor() == black || help.getFieldColor() == vertLightColor)){
+                        if(!result.contains(help)){
+                            result.add(help);
+                        }
                     }
                 }
             }
@@ -184,12 +190,14 @@ public class Preselector {
             
             if(Jinx.jinxIsPlayingVertical){
                 graphsByCurrentPlayer = board.graphsByOpponent;
+                graphsByNotCurrentPlayer = board.graphsByJinx;
                 notCurrentPlayerMax = board.graphsByJinx.get(0).getMaxYField();
                 notCurrentPlayerMin = board.graphsByJinx.get(0).getMinYField();
                 vertLightColor = FieldColor.LIGHT_JINX;
                 horLightColor = FieldColor.LIGHT_OPPONENT;
             }else{
                 graphsByCurrentPlayer = board.graphsByJinx;
+                graphsByNotCurrentPlayer = board.graphsByOpponent;
                 notCurrentPlayerMax = board.graphsByOpponent.get(0).getMaxYField();
                 notCurrentPlayerMin = board.graphsByOpponent.get(0).getMinYField();
                 vertLightColor = FieldColor.LIGHT_OPPONENT;
@@ -287,9 +295,9 @@ public class Preselector {
                     }
                 }
             }
-            //get fields from maxY
-            x = graphsByCurrentPlayer.get(0).getMaxYField().getX();
-            y = graphsByCurrentPlayer.get(0).getMaxYField().getY();
+            //get fields from maxX
+            x = graphsByCurrentPlayer.get(0).getMaxXField().getX();
+            y = graphsByCurrentPlayer.get(0).getMaxXField().getY();
             for(int[] f : goodFieldsFromOwnMaxX){
                 pX = x+f[0];
                 pY = y+f[1];
@@ -319,20 +327,24 @@ public class Preselector {
                 }
             }   
             
-            //add fields from start and end of notCurrentPlayer (vertical)
-            if(notCurrentPlayerMin.getY() - 4 > 0){
-                help = board.getField(notCurrentPlayerMin.getX(), notCurrentPlayerMin.getY() - 4);
-                if((help.getFieldColor() == black || help.getFieldColor() == horLightColor)){
-                    if(!result.contains(help)){
-                        result.add(help);
+            //add (maximum) 2 fields for each graph by not current (endfields +- 4)
+            for(Graph g : graphsByNotCurrentPlayer){
+            
+                //add fields from start and end of notCurrentPlayer (vertical)
+                if(g.getMinYField().getY() - 4 > 0){
+                    help = board.getField(g.getMinYField().getX(), g.getMinYField().getY() - 4);
+                    if((help.getFieldColor() == black || help.getFieldColor() == horLightColor)){
+                        if(!result.contains(help)){
+                            result.add(help);
+                        }
                     }
                 }
-            }
-            if(notCurrentPlayerMax.getY() + 4 < 23){
-                help = board.getField(notCurrentPlayerMax.getX(), notCurrentPlayerMax.getY() + 4);
-                if((help.getFieldColor() == black || help.getFieldColor() == horLightColor)){
-                    if(!result.contains(help)){
-                        result.add(help);
+                if(g.getMaxYField().getY() + 4 < 23){
+                    help = board.getField(g.getMaxYField().getX(), g.getMaxYField().getY() + 4);
+                    if((help.getFieldColor() == black || help.getFieldColor() == horLightColor)){
+                        if(!result.contains(help)){
+                            result.add(help);
+                        }
                     }
                 }
             }
