@@ -34,7 +34,7 @@ public class Evaluator {
             //The higher the result is, the better is the situation for jinx
             float result;
             
-            result = Jinx.weightPoints * (pointsByJinx - pointsByOpponent);
+            result = (pointsByJinx - pointsByOpponent);//Jinx.weightPoints * (pointsByJinx - pointsByOpponent);
             
             //evaluate conflictzone (important especially in the beginning of the game,
             //not at the end, l. weigthOfPoints())
@@ -42,27 +42,27 @@ public class Evaluator {
             //if the graph is more centered (in both dimensions)
             
             if(isVertsMove){
-                result += (1-Jinx.weightPoints) * evaluateVertsConflictzones(graphsByVert, graphsByHor, true);
+                result += evaluateVertsConflictzones(graphsByVert, graphsByHor, true);//(1-Jinx.weightPoints) * evaluateVertsConflictzones(graphsByVert, graphsByHor, true);
 //                result += (1-Jinx.weightPoints) * (evaluateVertsConflictzones(graphsByVert, graphsByHor, true) + 
 //                        evaluateHorsConflictzones(graphsByVert, graphsByHor, false)) / 2;
                 
                 //dimension centering: x: minY and maxY seperately; y: average of both
-                result -= 0.01f * Math.abs(11.5f - graphsByVert.get(0).getMinYField().getX());
-                result -= 0.01f * Math.abs(11.5f - graphsByVert.get(0).getMaxYField().getX());
-                result -= 0.01f * Math.abs(11.5f - 
-                        ((graphsByVert.get(0).getMinYField().getY() +
-                        graphsByVert.get(0).getMaxYField().getY()) / 2));
+//                result -= 0.01f * Math.abs(11.5f - graphsByVert.get(0).getMinYField().getX());
+//                result -= 0.01f * Math.abs(11.5f - graphsByVert.get(0).getMaxYField().getX());
+//                result -= 0.01f * Math.abs(11.5f - 
+//                        ((graphsByVert.get(0).getMinYField().getY() +
+//                        graphsByVert.get(0).getMaxYField().getY()) / 2));
             }else{
 //                result += (1-Jinx.weightPoints) * (evaluateVertsConflictzones(graphsByVert, graphsByHor, false) +
 //                        evaluateHorsConflictzones(graphsByVert, graphsByHor, true)) / 2;
-                result += (1-Jinx.weightPoints) * evaluateHorsConflictzones(graphsByVert, graphsByHor, true);
+                result += evaluateHorsConflictzones(graphsByVert, graphsByHor, true);//(1-Jinx.weightPoints) * evaluateHorsConflictzones(graphsByVert, graphsByHor, true);
                 
                 //dimension centering: x: average of minX and maxX ; y: minX and maxX seperately
-                result -= 0.01f * Math.abs(11.5f - 
-                        ((graphsByHor.get(0).getMinXField().getX() +
-                        graphsByHor.get(0).getMaxXField().getX()) / 2));
-                result -= 0.01f * Math.abs(11.5f - graphsByHor.get(0).getMinXField().getY());
-                result -= 0.01f * Math.abs(11.5f - graphsByHor.get(0).getMaxXField().getY());
+//                result -= 0.01f * Math.abs(11.5f - 
+//                        ((graphsByHor.get(0).getMinXField().getX() +
+//                        graphsByHor.get(0).getMaxXField().getX()) / 2));
+//                result -= 0.01f * Math.abs(11.5f - graphsByHor.get(0).getMinXField().getY());
+//                result -= 0.01f * Math.abs(11.5f - graphsByHor.get(0).getMaxXField().getY());
             }
             
             return result;
@@ -1164,10 +1164,16 @@ public class Evaluator {
     private static float calcPointsWithLine(int index, Field f, boolean isVert){
         if(isVert){
             //calc intersection point with g(x) = 1 ('x axis plus 1 -> nearly 'Nullstelle')
-            return (1 + mV[index] * f.getX() - f.getY()) / mV[index];
+            if(f.getY() > 0)
+                return (1 + mV[index] * f.getX() - f.getY()) / mV[index];
+            else
+                return MAX_VALUE;//border reached -> line finished
         }else{
             //calc intersection point with y axis + 1 (x = 1) -> 'Y-Achsenabschnitt' + m
-            return f.getY() - mH[index] * f.getX() + mH[index] ;
+            if(f.getX() > 0)
+                return f.getY() - mH[index] * f.getX() + mH[index] ;
+            else
+                return MAX_VALUE;//border reached -> line finished
         }
     }
     
