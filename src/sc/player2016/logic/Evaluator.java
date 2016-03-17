@@ -42,27 +42,27 @@ public class Evaluator {
             //if the graph is more centered (in both dimensions)
             
             if(isVertsMove){
-                result += evaluateVertsConflictzones(graphsByVert, graphsByHor, true);//(1-Jinx.weightPoints) * evaluateVertsConflictzones(graphsByVert, graphsByHor, true);
+                result += (1-Jinx.weightPoints) * evaluateVertsConflictzones(graphsByVert, graphsByHor, true);
 //                result += (1-Jinx.weightPoints) * (evaluateVertsConflictzones(graphsByVert, graphsByHor, true) + 
 //                        evaluateHorsConflictzones(graphsByVert, graphsByHor, false)) / 2;
                 
                 //dimension centering: x: minY and maxY seperately; y: average of both
-//                result -= 0.01f * Math.abs(11.5f - graphsByVert.get(0).getMinYField().getX());
-//                result -= 0.01f * Math.abs(11.5f - graphsByVert.get(0).getMaxYField().getX());
-//                result -= 0.01f * Math.abs(11.5f - 
-//                        ((graphsByVert.get(0).getMinYField().getY() +
-//                        graphsByVert.get(0).getMaxYField().getY()) / 2));
+                result -= 0.01f * Math.abs(11.5f - graphsByVert.get(0).getMinYField().getX());
+                result -= 0.01f * Math.abs(11.5f - graphsByVert.get(0).getMaxYField().getX());
+                result -= 0.01f * Math.abs(11.5f - 
+                        ((graphsByVert.get(0).getMinYField().getY() +
+                        graphsByVert.get(0).getMaxYField().getY()) / 2));
             }else{
 //                result += (1-Jinx.weightPoints) * (evaluateVertsConflictzones(graphsByVert, graphsByHor, false) +
 //                        evaluateHorsConflictzones(graphsByVert, graphsByHor, true)) / 2;
-                result += evaluateHorsConflictzones(graphsByVert, graphsByHor, true);//(1-Jinx.weightPoints) * evaluateHorsConflictzones(graphsByVert, graphsByHor, true);
+                result += (1-Jinx.weightPoints) * evaluateHorsConflictzones(graphsByVert, graphsByHor, true);
                 
                 //dimension centering: x: average of minX and maxX ; y: minX and maxX seperately
-//                result -= 0.01f * Math.abs(11.5f - 
-//                        ((graphsByHor.get(0).getMinXField().getX() +
-//                        graphsByHor.get(0).getMaxXField().getX()) / 2));
-//                result -= 0.01f * Math.abs(11.5f - graphsByHor.get(0).getMinXField().getY());
-//                result -= 0.01f * Math.abs(11.5f - graphsByHor.get(0).getMaxXField().getY());
+                result -= 0.01f * Math.abs(11.5f - 
+                        ((graphsByHor.get(0).getMinXField().getX() +
+                        graphsByHor.get(0).getMaxXField().getX()) / 2));
+                result -= 0.01f * Math.abs(11.5f - graphsByHor.get(0).getMinXField().getY());
+                result -= 0.01f * Math.abs(11.5f - graphsByHor.get(0).getMaxXField().getY());
             }
             
             return result;
@@ -88,7 +88,7 @@ public class Evaluator {
         }else{
             result = 1;
         }
-        return 0.2f + 0.8f*result;
+        return 0.2f + 0.6f*result;
     }
 
     public static float evaluateVertsConflictzones(ArrayList<Graph> graphsByVert,
